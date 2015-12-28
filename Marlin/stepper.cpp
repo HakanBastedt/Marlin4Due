@@ -38,6 +38,7 @@
 //===========================================================================
 block_t *current_block;  // A pointer to the block currently being traced
 
+extern int hakans_fsr_endstop_active;
 
 //===========================================================================
 //============================= private variables ===========================
@@ -331,6 +332,9 @@ inline void update_endstops() {
         #endif // Z_MIN_PIN
 
         #ifdef Z_PROBE_ENDSTOP
+#ifdef HAKANS_FSR
+	    if (hakans_fsr_endstop_active) {
+#endif
           UPDATE_ENDSTOP(Z, PROBE);
 
           if (TEST_ENDSTOP(Z_PROBE))
@@ -338,6 +342,9 @@ inline void update_endstops() {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_hit_bits |= BIT(Z_PROBE);
           }
+#ifdef HAKANS_FSR
+	    }
+#endif
         #endif
       }
       else { // z +direction
@@ -369,6 +376,9 @@ inline void update_endstops() {
         #endif // Z_MAX_PIN
 
         #ifdef Z_PROBE_ENDSTOP
+#ifdef HAKANS_FSR
+      if (hakans_fsr_endstop_active) {
+#endif
           UPDATE_ENDSTOP(Z, PROBE);
 
           if (TEST_ENDSTOP(Z_PROBE))
@@ -376,6 +386,9 @@ inline void update_endstops() {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_hit_bits |= BIT(Z_PROBE);
           }
+#ifdef HAKANS_FSR
+      }
+#endif
         #endif
       }
   #if defined(COREXZ)

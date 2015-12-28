@@ -37,12 +37,13 @@
 #define Z_DIR_PIN          3
 #define Z_ENABLE_PIN       15
 
-#define X_MIN_PIN          28
+#define X_MIN_PIN          -1
 #define X_MAX_PIN          34  // 34   //Max endstops default to disabled "-1", set to commented value to enable.
-#define Y_MIN_PIN          30
+#define Y_MIN_PIN          -1 //30
 #define Y_MAX_PIN          36  // 36
-#define Z_MIN_PIN          32  // 32
+#define Z_MIN_PIN          -1  // 32
 #define Z_MAX_PIN          38  // 38
+#define Z_PROBE_PIN        32  // Z_MIN
 
 #define E0_STEP_PIN        61
 #define E0_DIR_PIN         60
@@ -62,7 +63,8 @@
 
 #define BEEPER             41
 
-#define FAN_PIN            -1
+#define FAN_PIN            8
+#define FAN2_PIN           9 // Not used.
 
 #define PS_ON_PIN          40
 
@@ -79,8 +81,8 @@
 
 #define HEATER_BED_PIN     7    // BED
 #define HEATER_0_PIN       13
-#define HEATER_1_PIN       -1  // 12
-#define HEATER_2_PIN       -1  // 11
+#define HEATER_1_PIN       -1   // 12
+#define HEATER_2_PIN       -1   // 11
 #define HEATER_3_PIN       -1
 
 #define TEMP_BED_PIN       4   // ANALOG NUMBERING

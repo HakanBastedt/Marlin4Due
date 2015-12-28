@@ -250,7 +250,6 @@ void planner_reverse_pass() {
   CRITICAL_SECTION_END
   
   if (BLOCK_MOD(block_buffer_head - tail + BLOCK_BUFFER_SIZE) > 3) { // moves queued
-    block_index = BLOCK_MOD(block_buffer_head - 3);
     block_t *block[3] = { NULL, NULL, NULL };
     while (block_index != tail) {
       block_index = prev_block_index(block_index);

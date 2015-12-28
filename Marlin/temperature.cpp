@@ -1570,7 +1570,14 @@ HAL_TEMP_TIMER_ISR {
         #define GE0 >=
       #endif
       if (current_temperature_raw[0] GE0 maxttemp_raw[0]) max_temp_error(0);
-      if (minttemp_raw[0] GE0 current_temperature_raw[0]) min_temp_error(0);
+      if (minttemp_raw[0] GE0 current_temperature_raw[0]) { 
+	SERIAL_ECHO("min raw = ");
+	SERIAL_ECHO(minttemp_raw[0]);
+	SERIAL_ECHO(" current raw = ");
+	SERIAL_ECHO(current_temperature_raw[0]);
+	
+	min_temp_error(0);
+      }
     #endif
 
     #if HAS_TEMP_1 && EXTRUDERS > 1
