@@ -300,6 +300,10 @@ int xy_travel_speed = XY_TRAVEL_SPEED;
 float zprobe_zoffset = Z_PROBE_OFFSET_FROM_EXTRUDER;
 #endif
 
+#if defined(Y_DUAL_ENDSTOPS) && !defined(DELTA)
+float y_endstop_adj = 0;
+#endif
+
 #if defined(Z_DUAL_ENDSTOPS) && !defined(DELTA)
 float z_endstop_adj = 0;
 #endif
@@ -1778,6 +1782,10 @@ static void homeaxis(AxisEnum axis) {
 #endif
 
     // Set a flag for Z motor locking
+#ifdef Y_DUAL_ENDSTOPS
+    if (axis == Y_AXIS) In_Homing_Process(true);
+#endif
+    // Set a flag for Z motor locking
 #ifdef Z_DUAL_ENDSTOPS
     if (axis == Z_AXIS) In_Homing_Process(true);
 #endif
@@ -1809,6 +1817,30 @@ static void homeaxis(AxisEnum axis) {
     line_to_destination();
     st_synchronize();
 
+#ifdef Y_DUAL_ENDSTOPS
+    if (axis == Y_AXIS) {
+      float adj = fabs(y_endstop_adj);
+      bool lockY1;
+      if (axis_home_dir > 0) {
+	adj = -adj;
+	lockY1 = (y_endstop_adj > 0);
+      }
+      else
+	lockY1 = (y_endstop_adj < 0);
+
+      if (lockY1) Lock_y_motor(true); else Lock_y2_motor(true);
+      sync_plan_position();
+
+      // Move to the adjusted endstop height
+      feedrate = homing_feedrate[axis];
+      destination[Y_AXIS] = adj;
+      line_to_destination();
+      st_synchronize();
+
+      if (lockY1) Lock_y_motor(false); else Lock_y2_motor(false);
+      In_Homing_Process(false);
+    } // Y_AXIS
+#endif
 #ifdef Z_DUAL_ENDSTOPS
     if (axis == Z_AXIS) {
       float adj = fabs(z_endstop_adj);
@@ -4341,6 +4373,17 @@ inline void gcode_M666() {
     }
   }
 }
+
+#elif defined(Y_DUAL_ENDSTOPS) // !DELTA && defined(Y_DUAL_ENDSTOPS)
+/**
+ * M666: For Y Dual Endstop setup, set y axis offset to the y2 axis.
+ */
+inline void gcode_M666() {
+  if (code_seen('Y')) y_endstop_adj = code_value();
+  SERIAL_ECHOPAIR("Y Endstop Adjustment set to (mm):", y_endstop_adj);
+  SERIAL_EOL;
+}
+
 #elif defined(Z_DUAL_ENDSTOPS) // !DELTA && defined(Z_DUAL_ENDSTOPS)
 /**
  * M666: For Z Dual Endstop setup, set z axis offset to the z2 axis.
@@ -5839,7 +5882,7 @@ void process_next_command() {
       break;
 #endif
 
-#if defined(DELTA) || defined(Z_DUAL_ENDSTOPS)
+#if defined(DELTA) || defined(Y_DUAL_ENDSTOPS) || defined(Z_DUAL_ENDSTOPS)
     case 666: // M666 set delta / dual endstop adjustment
       gcode_M666();
       break;

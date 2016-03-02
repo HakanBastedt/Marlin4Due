@@ -52,6 +52,11 @@ extern int hakans_fsr_endstop_active;
 static unsigned char out_bits = 0;        // The next stepping-bits to be output
 static unsigned int cleaning_buffer_counter;
 
+#ifdef Y_DUAL_ENDSTOPS
+  static bool performing_homing = false, 
+              locked_y_motor = false, 
+              locked_y2_motor = false;
+#endif
 #ifdef Z_DUAL_ENDSTOPS
   static bool performing_homing = false, 
               locked_z_motor = false, 
@@ -88,7 +93,7 @@ volatile long endstops_trigsteps[3] = { 0 };
 volatile long endstops_stepsTotal, endstops_stepsDone;
 static volatile char endstop_hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
-#ifndef Z_DUAL_ENDSTOPS
+#if !(defined(Y_DUAL_ENDSTOPS) || defined(Z_DUAL_ENDSTOPS))
   static byte
 #else
   static uint16_t
@@ -136,8 +141,24 @@ volatile signed char count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 #endif
 
 #ifdef Y_DUAL_STEPPER_DRIVERS
-  #define Y_APPLY_DIR(v,Q) { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
-  #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
+  #define Y_APPLY_DIR(v,Q) { Y_DIR_WRITE(v); Y2_DIR_WRITE(v); }
+  #ifdef Y_DUAL_ENDSTOPS
+    #define Y_APPLY_STEP(v,Q) \
+    if (performing_homing) { \
+      if (Y_HOME_DIR > 0) {\
+        if (!(TEST(old_endstop_bits, Y_MAX) && (count_direction[Y_AXIS] > 0)) && !locked_y_motor) Y_STEP_WRITE(v); \
+        if (!(TEST(old_endstop_bits, Y2_MAX) && (count_direction[Y_AXIS] > 0)) && !locked_y2_motor) Y2_STEP_WRITE(v); \
+      } else {\
+        if (!(TEST(old_endstop_bits, Y_MIN) && (count_direction[Y_AXIS] < 0)) && !locked_y_motor) Y_STEP_WRITE(v); \
+        if (!(TEST(old_endstop_bits, Y2_MIN) && (count_direction[Y_AXIS] < 0)) && !locked_y2_motor) Y2_STEP_WRITE(v); \
+      } \
+    } else { \
+      Y_STEP_WRITE(v); \
+      Y2_STEP_WRITE(v); \
+    }
+  #else
+    #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
+  #endif
 #else
   #define Y_APPLY_DIR(v,Q) Y_DIR_WRITE(v)
   #define Y_APPLY_STEP(v,Q) Y_STEP_WRITE(v)
@@ -221,7 +242,7 @@ void enable_endstops(bool check) { check_endstops = check; }
 // Check endstops
 inline void update_endstops() {
 
-  #ifdef Z_DUAL_ENDSTOPS
+#if defined(Y_DUAL_ENDSTOPS) ||defined(Z_DUAL_ENDSTOPS)
     uint16_t
   #else
     byte
@@ -298,13 +319,55 @@ inline void update_endstops() {
   #endif
       { // -direction
         #if HAS_Y_MIN
-          UPDATE_ENDSTOP(Y, MIN);
+          #ifdef Y_DUAL_ENDSTOPS
+            SET_ENDSTOP_BIT(Y, MIN);
+              #if HAS_Y2_MIN
+                SET_ENDSTOP_BIT(Y2, MIN);
+              #else
+                COPY_BIT(current_endstop_bits, Y_MIN, Y2_MIN);
+              #endif
+
+            byte y_test = TEST_ENDSTOP(Y_MIN) << 0 + TEST_ENDSTOP(Y2_MIN) << 1; // bit 0 for Y, bit 1 for Y2
+
+            if (y_test && current_block->steps[Y_AXIS] > 0) { // y_test = Y_MIN || Y2_MIN
+              endstops_trigsteps[Y_AXIS] = count_position[Y_AXIS];
+              endstop_hit_bits |= BIT(Y_MIN);
+              if (!performing_homing || (y_test == 0x3))  //if not performing home or if both endstops were trigged during homing...
+                step_events_completed = current_block->step_event_count;
+            }
+          #else // !Y_DUAL_ENDSTOPS
+
+            UPDATE_ENDSTOP(Y, MIN);
+          #endif // !Y_DUAL_ENDSTOPS
         #endif
       }
       else { // +direction
         #if HAS_Y_MAX
-          UPDATE_ENDSTOP(Y, MAX);
-        #endif
+
+          #ifdef Y_DUAL_ENDSTOPS
+
+            SET_ENDSTOP_BIT(Y, MAX);
+              #if HAS_Y2_MAX
+                SET_ENDSTOP_BIT(Y2, MAX);
+              #else
+                COPY_BIT(current_endstop_bits, Y_MAX, Y2_MAX);
+              #endif
+
+            byte y_test = TEST_ENDSTOP(Y_MAX) << 0 + TEST_ENDSTOP(Y2_MAX) << 1; // bit 0 for Y, bit 1 for Y2
+
+            if (y_test && current_block->steps[Y_AXIS] > 0) {  // y_test = Y_MAX || Y2_MAX
+              endstops_trigsteps[Y_AXIS] = count_position[Y_AXIS];
+              endstop_hit_bits |= BIT(Y_MIN);
+              if (!performing_homing || (y_test == 0x3))  //if not performing home or if both endstops were trigged during homing...
+                step_events_completed = current_block->step_event_count;
+            }
+
+          #else // !Y_DUAL_ENDSTOPS
+
+            UPDATE_ENDSTOP(Y, MAX);
+
+          #endif // !Y_DUAL_ENDSTOPS
+        #endif // Y_MAX_PIN
       }
   #if defined(COREXY)
     }
@@ -1318,6 +1381,12 @@ void microstep_readings() {
     SERIAL_PROTOCOLLN(digitalRead(E1_MS2_PIN));
   #endif
 }
+
+#ifdef Y_DUAL_ENDSTOPS
+  void In_Homing_Process(bool state) { performing_homing = state; }
+  void Lock_y_motor(bool state) { locked_y_motor = state; }
+  void Lock_y2_motor(bool state) { locked_y2_motor = state; }
+#endif
 
 #ifdef Z_DUAL_ENDSTOPS
   void In_Homing_Process(bool state) { performing_homing = state; }

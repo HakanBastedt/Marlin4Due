@@ -86,6 +86,8 @@
  *
  * Z_DUAL_ENDSTOPS:
  *  M666 Z    z_endstop_adj
+ * Y_DUAL_ENDSTOPS:
+ *  M666 Y    y_endstop_adj
  *
  */
 #include "Marlin.h"
@@ -184,6 +186,10 @@ void Config_StoreSettings()  {
     EEPROM_WRITE_VAR(i, delta_segments_per_second); // 1 float
   #elif defined(Z_DUAL_ENDSTOPS)
     EEPROM_WRITE_VAR(i, z_endstop_adj);            // 1 floats
+    dummy = 0.0f;
+    for (int q=5; q--;) EEPROM_WRITE_VAR(i, dummy);
+  #elif defined(Y_DUAL_ENDSTOPS)
+    EEPROM_WRITE_VAR(i, y_endstop_adj);            // 1 floats
     dummy = 0.0f;
     for (int q=5; q--;) EEPROM_WRITE_VAR(i, dummy);
   #else
@@ -511,6 +517,8 @@ void Config_ResetDefault() {
     recalc_delta_settings(delta_radius, delta_diagonal_rod);
   #elif defined(Z_DUAL_ENDSTOPS)
     z_endstop_adj = 0;
+  #elif defined(Y_DUAL_ENDSTOPS)
+    y_endstop_adj = 0;
   #endif
 
   #ifdef ULTIPANEL
@@ -716,6 +724,14 @@ void Config_PrintSettings(bool forReplay) {
       CONFIG_ECHO_START;
     }
     SERIAL_ECHOPAIR("  M666 Z", z_endstop_adj);
+    SERIAL_EOL;  
+  #elif defined(Y_DUAL_ENDSTOPS)
+    CONFIG_ECHO_START;
+    if (!forReplay) {
+      SERIAL_ECHOLNPGM("Y2 Endstop adjustment (mm):");
+      CONFIG_ECHO_START;
+    }
+    SERIAL_ECHOPAIR("  M666 Y", y_endstop_adj);
     SERIAL_EOL;  
   #endif // DELTA
 

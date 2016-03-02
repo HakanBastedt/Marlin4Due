@@ -49,6 +49,9 @@ Here are some standard links for getting your machine calibrated:
 // Laser control is used by the Muve1 3D printer and the Buildlog.net laser cutter
 //
 #if 1
+#define Y_DUAL_STEPPER_DRIVERS
+#define Y_DUAL_ENDSTOPS
+
 #define LASER
 
 //// The following define selects how to control the laser.  Please choose the one that matches your setup.
@@ -434,7 +437,15 @@ const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 //#define DISABLE_MAX_ENDSTOPS
-#define DISABLE_MIN_ENDSTOPS
+//#define DISABLE_MIN_ENDSTOPS
+const bool Y2_MIN_ENDSTOP_INVERTING = true;
+const bool Y2_MAX_ENDSTOP_INVERTING = false;
+#define INVERT_Y2_VS_Y_DIR true
+#define DISABLE_XMIN_ENDSTOP
+#define DISABLE_YMAX_ENDSTOP
+#define DISABLE_ZMIN_ENDSTOP
+#define DISABLE_ZMAX_ENDSTOP
+#define DISABLE_Y2MAX_ENDSTOP
 
 // @section machine
 // If you want to enable the Z Probe pin, but disable its use, uncomment the line below.

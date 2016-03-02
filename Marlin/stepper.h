@@ -95,6 +95,12 @@ void digipot_current(uint8_t driver, int current);
 void microstep_init();
 void microstep_readings();
 
+#ifdef Y_DUAL_ENDSTOPS
+  void In_Homing_Process(bool state);
+  void Lock_y_motor(bool state);
+  void Lock_y2_motor(bool state);
+#endif
+
 #ifdef Z_DUAL_ENDSTOPS
   void In_Homing_Process(bool state);
   void Lock_z_motor(bool state);

@@ -136,6 +136,30 @@
 
 #endif // Z_DUAL_STEPPER_DRIVERS
 
+#ifdef Y_DUAL_STEPPER_DRIVERS
+
+  // Y_DUAL_ENDSTOPS is a feature to enable the use of 2 endstops for both Y steppers - Let's call them Y stepper and Y2 stepper.
+  // That way the machine is capable to align the bed during home, since both Y steppers are homed. 
+  // There is also an implementation of M666 (software endstops adjustment) to this feature.
+  // After Y homing, this adjustment is applied to just one of the steppers in order to align the bed.
+  // One just need to home the Y axis and measure the distance difference between both Y axis and apply the math: Y adjust = Y - Y2.
+  // If the Y stepper axis is closer to the bed, the measure Y > Y2 (yes, it is.. think about it) and the Y adjust would be positive.
+  // Play a little bit with small adjustments (0.5mm) and check the behaviour.
+  // The M119 (endstops report) will start reporting the Y2 Endstop as well.
+
+  //#define Y_DUAL_ENDSTOPS
+
+  #ifdef Y_DUAL_ENDSTOPS
+    #define Y2_STEP_PIN E2_STEP_PIN           // Stepper to be used to Y2 axis.
+    #define Y2_DIR_PIN E2_DIR_PIN
+    #define Y2_ENABLE_PIN E2_ENABLE_PIN
+    #define Y2_MAX_PIN 38                     //Endstop used for Y2 axis. In this case I'm using YMAX in a RAMPS FD (pin 38)
+    const bool Y2_MAX_ENDSTOP_INVERTING = false;
+    #define DISABLE_YMIN_ENDSTOP              //Better to disable the YMIN to avoid conflict. Just rename "YMIN_ENDSTOP" by the endstop you are using for Y2 axis.
+  #endif
+
+#endif // Y_DUAL_STEPPER_DRIVERS
+
 // Same again but for Y Axis.
 //#define Y_DUAL_STEPPER_DRIVERS
 
