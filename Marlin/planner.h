@@ -25,6 +25,9 @@
 #define PLANNER_H
 
 #include "Marlin.h"
+#ifdef LASER
+#include "laser.h"
+#endif
 
 // This struct is used when buffering the setup for each linear movement "nominal" values are as specified in 
 // the source g-code and may never actually be reached if acceleration management is active.
@@ -64,6 +67,17 @@ typedef struct {
     unsigned long valve_pressure;
     unsigned long e_to_p_pressure;
   #endif
+  #ifdef LASER
+    uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
+    bool laser_status; // LASER_OFF, LASER_ON
+    float laser_ppm; // pulses per millimeter, for pulsed and raster firing modes
+    unsigned long laser_duration; // laser firing duration in microseconds, for pulsed and raster firing modes
+    long steps_l_1000; // step count in 1/1000s between firings of the laser, for pulsed firing mode
+    int laser_intensity; // Laser firing instensity in clock cycles for the PWM timer
+    #ifdef LASER_RASTER
+      unsigned char laser_raster_data[LASER_MAX_RASTER_LINE]; 
+    #endif // LASER_RASTER
+  #endif // LASER
   volatile char busy;
 } block_t;
 

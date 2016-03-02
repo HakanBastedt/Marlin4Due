@@ -484,6 +484,18 @@ static void lcd_implementation_status_screen() {
 
   #else // LCD_WIDTH >= 20
 
+#ifdef LASER
+	lcd.setCursor(6, 0);
+	if (fanSpeed >= 100)
+	  lcd_printPGM(PSTR("Laser "));
+	else if (fanSpeed >= 10)
+	  lcd_printPGM(PSTR("Laser  "));
+	else
+	  lcd_printPGM(PSTR("Laser   "));
+	lcd.print(fanSpeed);
+	
+#else 
+
     //
     // Hotend 0 Temperature
     //
@@ -501,7 +513,7 @@ static void lcd_implementation_status_screen() {
       #endif
 
     #endif  // EXTRUDERS > 1 || TEMP_SENSOR_BED != 0
-
+#endif
   #endif // LCD_WIDTH >= 20
 
   //
@@ -550,14 +562,14 @@ static void lcd_implementation_status_screen() {
       #endif // EXTRUDERS > 1 || TEMP_SENSOR_BED != 0
 
     #endif // LCD_WIDTH >= 20
-
+#ifndef LASER
     lcd.setCursor(LCD_WIDTH - 8, 1);
     lcd.print('Z');
     if (axis_known_position[Z_AXIS])
       lcd.print(ftostr32sp(current_position[Z_AXIS] + 0.00001));
     else
       lcd_printPGM(PSTR("---.--"));
-
+#endif
   #endif // LCD_HEIGHT > 2
 
   //

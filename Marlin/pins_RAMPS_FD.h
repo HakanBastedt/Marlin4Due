@@ -53,7 +53,11 @@
 
 #define BEEPER             -1
 
+#ifdef LASER
+#define FAN_PIN             4  // Laser PWM-pin actually!
+#else
 #define FAN_PIN            10 //fet3
+#endif
 
 #define PS_ON_PIN          -1
 

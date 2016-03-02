@@ -52,6 +52,10 @@
 #include "math.h"
 #include "buzzer.h"
 
+#ifdef LASER_RASTER
+#include "Base64.h"
+#endif // LASER_RASTER
+
 #ifdef BLINKM
 #include "blinkm.h"
 #include "Wire.h"
@@ -265,6 +269,9 @@ float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 uint8_t active_extruder = 0;
 int fanSpeed = 0;
+#ifdef LASER
+int oldFanSpeed = 0;
+#endif
 bool cancel_heatup = false;
 
 const char errormagic[] PROGMEM = "Error:";
@@ -632,6 +639,9 @@ void disableStepperDrivers() {
 }
 void enableStepperDrivers() { pinMode(STEPPER_RESET_PIN, INPUT); }  // set to input, which allows it to be pulled high by pullups
 #endif
+#ifdef LASER
+  static void set_axis_is_at_home(AxisEnum axis);
+#endif
 
 /**
  * Marlin entry-point: Set up before the program loop
@@ -743,6 +753,15 @@ void setup() {
   pinMode(STAT_LED_BLUE, OUTPUT);
   digitalWrite(STAT_LED_BLUE, LOW); // turn it off
 #endif  
+
+#ifdef LASER
+  destination[Z_AXIS] = current_position[Z_AXIS] = 0;
+  set_axis_is_at_home(Z_AXIS);
+  plan_set_position(0,0,0,0);
+  axis_known_position[Z_AXIS] = true;
+
+  laser_init();
+#endif
 }
 
 /**
@@ -909,6 +928,9 @@ void get_command() {
 	  case 1:
 	  case 2:
 	  case 3:
+#ifdef LASER
+	  case 7:
+#endif
 	    SERIAL_ERRORLNPGM(MSG_ERR_STOPPED);
 	    LCD_MESSAGEPGM(MSG_STOPPED);
 	    break;
@@ -1929,6 +1951,12 @@ void retract(bool retracting, bool swapping=false) {
  */
 void gcode_get_destination() {
   for (int i = 0; i < NUM_AXIS; i++) {
+#ifdef LASER
+    if ( i == Z_AXIS ) {
+    destination[i] = 0;
+    continue;
+  }
+#endif
     if (code_seen(axis_codes[i]))
       destination[i] = code_value() + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
@@ -1950,7 +1978,7 @@ void unknown_command_error() {
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
  */
-inline void gcode_G0_G1() {
+inline void gcode_G0_G1(int codenum) {
   if (IsRunning()) {
     gcode_get_destination(); // For X Y Z E F
 
@@ -1968,8 +1996,26 @@ inline void gcode_G0_G1() {
     }
 
 #endif //FWRETRACT
+#ifdef LASER_FIRE_G1
+      if (laser.mode == RASTER)
+	laser_set_mode(CONTINUOUS);
+      if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
+      if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
+      if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
+      if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+      if (code_seen('B') && !IsStopped()) laser_set_mode((int) code_value());
+      if (codenum == 1) {
+        laser.status = LASER_ON;  // G1
+      } else {
+        laser.status = LASER_OFF; // Switch off during G0
+      }
+    laser.fired = LASER_FIRE_G1;
+#endif // LASER_FIRE_G1
 
     prepare_move();
+#ifdef LASER_FIRE_G1
+    laser.status = LASER_OFF;
+#endif // LASER_FIRE_G1
   }
 }
 
@@ -1996,9 +2042,25 @@ inline void gcode_G2_G3(bool clockwise) {
       code_seen('I') ? code_value() : 0,
       code_seen('J') ? code_value() : 0
     };
+#ifdef LASER_FIRE_G1
+    if (laser.mode == RASTER)
+      laser_set_mode(CONTINUOUS);
+    if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
+    if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
+    if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
+    if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+    if (code_seen('B') && !IsStopped()) laser_set_mode((int) code_value());
+    
+    laser.status = LASER_ON;
+    laser.fired = LASER_FIRE_G1;
+#endif // LASER_FIRE_G1
 
     // Send an arc to the planner
     plan_arc(destination, arc_offset, clockwise);
+
+#ifdef LASER_FIRE_G1
+    laser.status = LASER_OFF;
+#endif // LASER_FIRE_G1
 
     refresh_cmd_timeout();
   }
@@ -2042,6 +2104,48 @@ inline void gcode_G10_G11(bool doRetract=false) {
 }
 
 #endif //FWRETRACT
+#ifdef LASER_RASTER
+inline void gcode_G7() 
+{
+  if (code_seen('L')) 
+    laser.raster_raw_length = int(code_value());
+  if (code_seen('$')) {
+    laser.raster_direction = (bool)code_value();
+    destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+  }
+  if (code_seen('D')) 
+    laser.raster_num_pixels = base64_decode(laser.raster_data, seen_pointer+1, laser.raster_raw_length);
+  if (!laser.raster_direction) {
+    destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+    if (laser.diagnostics) {
+      SERIAL_ECHO_START;
+      SERIAL_ECHOLN("Negative Raster Line");
+    }
+  } else {
+    destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+    if (laser.diagnostics) {
+      SERIAL_ECHO_START;
+      SERIAL_ECHOLN("Positive Raster Line");
+    }
+  }
+  
+  laser.ppm = 1 / laser.raster_mm_per_pulse; //number of pulses per millimetre
+  laser.duration = (1000000 / ( feedrate / 60)) / laser.ppm; // (1 second in microseconds / (time to move 1mm in microseconds)) / (pulses per mm) = Duration of pulse, taking into account feedrate as speed and ppm
+  
+  laser.mode = RASTER;
+  laser.status = LASER_ON;
+  laser.fired = RASTER;
+#if 0  
+  SERIAL_ECHOPAIR(" mm_per_ppm ", laser.raster_mm_per_pulse);
+  SERIAL_ECHOPAIR(" ppm ", laser.ppm);
+  SERIAL_ECHOPAIR(" duration ", laser.duration);
+  SERIAL_ECHOPAIR(" pixels ", laser.raster_num_pixels);
+  SERIAL_ECHOLN(" ");
+#endif
+  prepare_move();
+  
+}
+#endif // LASER_RASTER
 
 /**
  * G28: Home all axes according to settings
@@ -2059,6 +2163,10 @@ inline void gcode_G10_G11(bool doRetract=false) {
  *
  */
 inline void gcode_G28() {
+
+#ifdef LASER
+    laser.status = LASER_OFF;
+#endif
 
   // Wait for planner moves to finish!
   st_synchronize();
@@ -2115,6 +2223,11 @@ inline void gcode_G28() {
     homeZ = code_seen(axis_codes[Z_AXIS]);
 
   home_all_axis = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
+#ifdef LASER
+  homeZ = false;
+  if (!homeX && !homeY && !homeZ) homeX = homeY = true;
+  home_all_axis = false;
+#endif
 
   if (home_all_axis || homeZ) {
 
@@ -2978,6 +3091,42 @@ inline void gcode_M0_M1() {
 
 #endif // ULTIPANEL
 
+#ifdef LASER
+inline void gcode_M3()
+{
+  if (laser.mode == RASTER)
+    laser_set_mode(CONTINUOUS);
+  if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
+  if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
+  if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
+  if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+  if (code_seen('B') && !IsStopped()) laser_set_mode((int) code_value());
+
+#ifdef LASER_POWER_DOWN
+  digitalWrite(LASER_POWER_PIN, HIGH); // Switch on no matter what
+  analogWrite(LASER_POWER_PIN, 255); // Switch on no matter what
+#endif
+
+  laser.status = LASER_ON;
+  laser.fired = LASER_FIRE_SPINDLE;      
+  //*=*=*=*=*=*
+  lcd_update();
+  
+  prepare_move();
+}
+inline void gcode_M5()
+{
+#ifdef LASER_POWER_DOWN
+  digitalWrite(LASER_POWER_PIN, LOW); // Switch off no matter what
+  analogWrite(LASER_POWER_PIN, 0); // Switch off no matter what
+#endif
+  laser.status = LASER_OFF;
+  lcd_update();
+  prepare_move();
+}
+
+#endif	
+
 /**
  * M17: Enable power on all stepper motors
  */
@@ -3531,7 +3680,16 @@ inline void gcode_M105() {
 /**
  * M106: Set Fan Speed
  */
-inline void gcode_M106() { fanSpeed = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255; }
+#ifdef LASER
+  inline void gcode_M106() { 
+    if (code_seen('S')) 
+      fanSpeed = oldFanSpeed = constrain(code_value_short(), 0, 255); 
+    else 
+      fanSpeed = oldFanSpeed; 
+  }
+#else
+  inline void gcode_M106() { fanSpeed = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255; }
+#endif
 
 /**
  * M107: Fan Off
@@ -3793,6 +3951,11 @@ inline void gcode_M80() {
   OUT_WRITE(SUICIDE_PIN, HIGH);
 #endif
 
+#ifdef LASER_PERIPHERALS
+  laser_peripherals_on();
+  laser_wait_for_peripherals();
+#endif // LASER_PERIPHERALS
+
 #ifdef ULTIPANEL
   powersupply = true;
   LCD_MESSAGEPGM(WELCOME_MSG);
@@ -3818,6 +3981,9 @@ inline void gcode_M81() {
 #elif HAS_POWER_SWITCH
   OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
 #endif
+#ifdef LASER_PERIPHERALS
+  laser_peripherals_off();
+#endif // LASER_PERIPHERALS
 #ifdef ULTIPANEL
 #if HAS_POWER_SWITCH
   powersupply = false;
@@ -3854,7 +4020,9 @@ inline void gcode_M18_M84() {
       st_synchronize();
       if (code_seen('X')) disable_x();
       if (code_seen('Y')) disable_y();
+#ifndef LASER
       if (code_seen('Z')) disable_z();
+#endif
 #if ((E0_ENABLE_PIN != X_ENABLE_PIN) && (E1_ENABLE_PIN != Y_ENABLE_PIN)) // Only enable on boards that have seperate ENABLE_PINS
       if (code_seen('E')) {
 	disable_e0();
@@ -5093,6 +5261,24 @@ inline void gcode_M605() {
 }
 
 #endif // DUAL_X_CARRIAGE
+#ifdef LASER
+inline void gcode_M649() // M649 set laser options
+{
+  if (code_seen('S') && !IsStopped()) {
+    laser.intensity = (float) code_value();
+    laser.rasterlaserpower =  laser.intensity;
+  }
+  if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
+  if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
+  if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
+  if (code_seen('B') && !IsStopped()) laser_set_mode((int) code_value());
+  if (code_seen('R') && !IsStopped()) laser.raster_mm_per_pulse = ((float) code_value());
+  if (code_seen('F')) {
+    float next_feedrate = code_value();
+    if(next_feedrate > 0.0) feedrate = next_feedrate;
+  }
+}
+#endif // LASER
 
 /**
  * M907: Set digital trimpot motor current using axis codes X, Y, Z, E, B, S
@@ -5343,7 +5529,7 @@ void process_next_command() {
       // G0, G1
     case 0:
     case 1:
-      gcode_G0_G1();
+      gcode_G0_G1(codenum);
       break;
 
       // G2, G3
@@ -5358,6 +5544,12 @@ void process_next_command() {
     case 4:
       gcode_G4();
       break;
+
+#ifdef LASER_RASTER
+    case 7:
+      gcode_G7();
+      break;
+#endif
 
 #ifdef FWRETRACT
 
@@ -5417,6 +5609,15 @@ void process_next_command() {
       gcode_M0_M1();
       break;
 #endif // ULTIPANEL
+      
+#ifdef LASER_FIRE_SPINDLE
+    case 3:  //M3 - fire laser
+      gcode_M3();
+      break;
+    case 5:  //M5 stop firing laser
+      gcode_M5();
+      break;
+#endif // LASER_FIRE_SPINDLE
 
     case 17:
       gcode_M17();
@@ -5823,6 +6024,12 @@ void process_next_command() {
       break;
 #endif // DUAL_X_CARRIAGE
 
+#ifdef LASER
+    case 649:
+      gcode_M649();
+      break;
+#endif
+
     case 907: // M907 Set digital trimpot motor current using axis codes.
       gcode_M907();
       break;
@@ -6194,6 +6401,17 @@ inline bool prepare_move_cartesian() {
  */
 void prepare_move() {
   clamp_to_software_endstops(destination);
+
+#ifdef LASER_FIRE_E
+  if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
+    laser.status = LASER_ON;
+    laser.fired = LASER_FIRE_E;
+  }
+  if (current_position[E_AXIS] == destination[E_AXIS] && laser.fired == LASER_FIRE_E){
+    laser.status = LASER_OFF;
+  }
+#endif // LASER_FIRE_E
+
   refresh_cmd_timeout();
 
 #ifdef PREVENT_DANGEROUS_EXTRUDE
@@ -6518,7 +6736,9 @@ void enable_all_steppers() {
 void disable_all_steppers() {
   disable_x();
   disable_y();
+#ifndef LASER
   disable_z();
+#endif
   disable_e0();
   disable_e1();
   disable_e2();
@@ -6571,7 +6791,9 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     disable_y();
 #endif
 #if DISABLE_Z == true
-    disable_z();
+#ifndef LASER
+      disable_z();
+#endif
 #endif
 #if DISABLE_E == true
     disable_e0();
@@ -6580,6 +6802,17 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     disable_e3();
 #endif
   }
+#ifdef LASER
+  if (laser.time / 60000 > 0) {
+    laser.lifetime += laser.time / 60000; // convert to minutes
+    laser.time = 0;
+    Config_StoreSettings();
+  }
+      laser_init();
+#endif // LASER
+#ifdef LASER_PERIPHERALS
+  laser_peripherals_off();
+#endif
 
 #ifdef CHDK // Check if pin should be set to LOW after M240 set it to HIGH
   if (chdkActive && ms > chdkHigh + CHDK_DELAY) {
@@ -6713,6 +6946,14 @@ void kill(const char *lcd_msg) {
   disable_all_heaters();
   disable_all_steppers();
 
+#ifdef LASER
+  laser_init();
+#endif // LASER
+  
+#ifdef LASER_PERIPHERALS
+  laser_peripherals_off();
+#endif // LASER_PERIPHERALS
+
 #if HAS_POWER_SWITCH
   pinMode(PS_ON_PIN, INPUT);
 #endif
@@ -6812,6 +7053,13 @@ void setPwmFrequency(uint8_t pin, int val) {
 
 void Stop() {
   disable_all_heaters();
+#ifdef LASER
+  if (laser.diagnostics) SERIAL_ECHOLN("Laser set to off, stop() called");
+  laser_extinguish();
+#endif
+#ifdef LASER_PERIPHERALS
+  laser_peripherals_off();
+#endif
   if (IsRunning()) {
     Running = false;
     Stopped_gcode_LastN = gcode_LastN; // Save last g_code for restart

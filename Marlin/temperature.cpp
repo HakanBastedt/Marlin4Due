@@ -1508,6 +1508,21 @@ HAL_TEMP_TIMER_ISR {
     //   break;
   } // switch(temp_state)
 
+#ifdef LASER
+  #define SET_CURRENT_TEMP_RAW(temp_id) \
+    if (temp_id == 0) raw_temp_value[0] == 16000;\
+    raw_median_temp[temp_id][median_counter] = (raw_temp_value[temp_id] - (min_temp[temp_id] + max_temp[temp_id])); \
+    sum = 0; \
+    for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i]; \
+    current_temperature_raw[temp_id] = (sum / MEDIAN_COUNT + 4) >> 2
+      
+  #define SET_CURRENT_BED_RAW(temp_id) \
+    raw_temp_bed_value = 16000; \
+    raw_median_temp[temp_id][median_counter] = (raw_temp_bed_value - (min_temp[temp_id] + max_temp[temp_id])); \
+    sum = 0; \
+    for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i]; \
+    current_temperature_bed_raw = (sum / MEDIAN_COUNT + 4) >> 2
+#else
   #define SET_CURRENT_TEMP_RAW(temp_id) raw_median_temp[temp_id][median_counter] = (raw_temp_value[temp_id] - (min_temp[temp_id] + max_temp[temp_id])); \
     sum = 0; \
     for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i]; \
@@ -1517,7 +1532,7 @@ HAL_TEMP_TIMER_ISR {
     sum = 0; \
     for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i]; \
     current_temperature_bed_raw = (sum / MEDIAN_COUNT + 4) >> 2
-    
+#endif    
   #define SET_REDUNDANT_RAW(temp_id) raw_median_temp[temp_id][median_counter] = (raw_temp_bed_value - (min_temp[temp_id] + max_temp[temp_id])); \
     sum = 0; \
     for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i]; \
