@@ -17,9 +17,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "laser.h"
 #include "Configuration.h"
-//#include "ConfigurationStore.h"
+#ifdef LASER
+#include "laser.h"
 #include "pins.h"
 #include <avr/interrupt.h>
 #include <Arduino.h>
@@ -170,3 +170,4 @@ void laser_wait_for_peripherals() {
   }
 }
 #endif // LASER_PERIPHERALS
+#endif

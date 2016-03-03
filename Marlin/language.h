@@ -124,6 +124,8 @@
 #define MSG_Z_MIN                           "z_min: "
 #define MSG_Z_MAX                           "z_max: "
 #define MSG_Z2_MAX                          "z2_max: "
+#define MSG_Y2_MIN                          "y2_min: "
+#define MSG_Y2_MAX                          "y2_max: "
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-1)"
 #define MSG_ERR_M421_REQUIRES_XYZ           "M421 requires XYZ parameters"

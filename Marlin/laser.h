@@ -16,12 +16,13 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
 #ifndef LASER_H
 #define LASER_H
 
 #include <inttypes.h>
 #include "Configuration.h"
+
+#ifdef LASER
 
 // split into planned and status
 typedef struct {
@@ -88,3 +89,4 @@ void laser_set_mode(int mode);
 // For PWM
 #define LASER_PWM_MAX_DUTY_CYCLE 255
 #endif // LASER_H
+#endif

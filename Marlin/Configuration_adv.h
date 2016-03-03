@@ -154,7 +154,6 @@
     #define Y2_DIR_PIN E2_DIR_PIN
     #define Y2_ENABLE_PIN E2_ENABLE_PIN
     #define Y2_MAX_PIN 38                     //Endstop used for Y2 axis. In this case I'm using YMAX in a RAMPS FD (pin 38)
-    const bool Y2_MAX_ENDSTOP_INVERTING = false;
     #define DISABLE_YMIN_ENDSTOP              //Better to disable the YMIN to avoid conflict. Just rename "YMIN_ENDSTOP" by the endstop you are using for Y2 axis.
   #endif
 

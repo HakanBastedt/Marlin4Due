@@ -13,7 +13,7 @@
 #define LONG_INTERVAL (2000 / LONG_SIZE)
 #define THRESHOLD 0.8
 
-#define FSR_PIN TEMP_1_PIN
+#define FSR_PIN -1
 
 millis_t lastLongTime;
 uint16_t longSamples[LONG_SIZE];

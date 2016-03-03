@@ -53,20 +53,16 @@
 
 #define BEEPER             -1
 
-#ifdef LASER
-#define FAN_PIN             4  // Laser PWM-pin actually!
-#else
-#define FAN_PIN            10 //fet3
-#endif
+#define FAN_PIN             8
 
 #define PS_ON_PIN          -1
 
-#define KILL_PIN           41 //Dawson
+#define KILL_PIN           -1 //Dawson
 
 
-#define HEATER_BED_PIN     8    // BED //Dawson - OTW, not on the right power feed!
+#define HEATER_BED_PIN     -1    // BED //Dawson - OTW, not on the right power feed!
 
-#define HEATER_0_PIN       9 //Dawson - OTW, not on the right power feed!
+#define HEATER_0_PIN       9
 #define HEATER_1_PIN       -1
 // #define HEATER_2_PIN       11
 #define HEATER_2_PIN       -1 // Dawson - use this for stepper fan control
@@ -74,13 +70,11 @@
 #define TEMP_BED_PIN       0   // ANALOG NUMBERING
 
 #define TEMP_0_PIN         1   // ANALOG NUMBERING
-#define TEMP_1_PIN         2  // 2    // ANALOG NUMBERING
+#define TEMP_1_PIN         -1  // 2    // ANALOG NUMBERING
 #define TEMP_2_PIN         -1  // 3     // ANALOG NUMBERING
 
 #define TEMP_3_PIN         -1   // ANALOG NUMBERING
 #define TEMP_4_PIN         -1   // ANALOG NUMBERING
-
-
 
   #ifdef NUM_SERVOS
     #define SERVO0_PIN         7
@@ -134,7 +128,6 @@
 
 
 // SPI for Max6675 Thermocouple
-
 #ifndef SDSUPPORT
 // these pins are defined in the SD library if building with SD support
   #define MAX_SCK_PIN          52
@@ -144,7 +137,7 @@
 #else
   #define MAX6675_SS       49
 #endif
-
 // --------------------------------------------------------------------------
 // 
 // --------------------------------------------------------------------------
+
