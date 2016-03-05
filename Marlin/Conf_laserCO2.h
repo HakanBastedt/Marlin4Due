@@ -39,6 +39,15 @@ Here are some standard links for getting your machine calibrated:
 
 #define Y_DUAL_STEPPER_DRIVERS
 #define Y_DUAL_ENDSTOPS
+#ifdef Y_DUAL_STEPPER_DRIVERS
+  #define Y2_STEP_PIN   32  // Use E2
+  #define Y2_DIR_PIN    47
+  #define Y2_ENABLE_PIN 45
+#endif
+#ifdef Y_DUAL_ENDSTOPS
+  #define Y2_MIN_PIN    38  // Y_MAX on RAMPS_FD
+  #define DISABLE_YMAX_ENDSTOP              //Better to disable the YMIN to avoid conflict. Just rename "YMIN_ENDSTOP" by the endstop you are using for Y2 axis.
+#endif
 
 #define LASER
 #ifdef LASER
@@ -48,9 +57,9 @@ Here are some standard links for getting your machine calibrated:
 
 #define LASER_CONTROL 2
 #define LASER_POWER_DOWN
-#define LASER_FIRING_PIN 9
-#define LASER_POWER_PIN 10
-
+#define LASER_INTENSITY_PIN 6 // S2
+#define LASER_FIRING_PIN    7 // S1
+#define LASER_POWER_PIN     8 // 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 // #define HIGH_TO_FIRE
 
@@ -304,7 +313,7 @@ Here are some standard links for getting your machine calibrated:
 //if PREVENT_DANGEROUS_EXTRUDE is on, you can still disable (uncomment) very long bits of extrusion separately.
 //#define PREVENT_LENGTHY_EXTRUDE
 
-//#define EXTRUDE_MINTEMP 160
+#define EXTRUDE_MINTEMP 0
 //#define EXTRUDE_MAXLENGTH (X_MAX_LENGTH+Y_MAX_LENGTH) //prevent extrusion of very large distances.
 
 //===========================================================================
@@ -395,7 +404,6 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 #define DISABLE_YMAX_ENDSTOP
 #define DISABLE_ZMIN_ENDSTOP
 #define DISABLE_ZMAX_ENDSTOP
-#define DISABLE_Y2MAX_ENDSTOP
 
 // @section machine
 // If you want to enable the Z Probe pin, but disable its use, uncomment the line below.
@@ -442,7 +450,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // ENDSTOP SETTINGS:
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
 #define X_HOME_DIR 1 // deltas always home to max
-#define Y_HOME_DIR 1
+#define Y_HOME_DIR -1
 #define Z_HOME_DIR 1
 
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
@@ -454,8 +462,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 #define X_MIN_POS 0
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS 650
-#define Y_MAX_POS 650
+#define X_MAX_POS 550
+#define Y_MAX_POS 550
 #define Z_MAX_POS 200
 
 //===========================================================================
@@ -632,8 +640,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 
 // default settings
 // Microstepping 1/8 för ökad hastighet
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {50,50,4000,500}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {40000, 40000, 5, 25}    // (mm/sec)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,100,50}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {80000, 80000, 5, 25}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {10000,10000,100,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
@@ -670,7 +678,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //define this to enable EEPROM support
-#define EEPROM_SETTINGS
+//#define EEPROM_SETTINGS
 
 #ifdef EEPROM_SETTINGS
   // To disable EEPROM Serial responses and decrease program space by ~1700 byte: comment this out:
@@ -748,7 +756,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
 // ==> REMEMBER TO INSTALL U8glib to your ARDUINO library folder: http://code.google.com/p/u8glib/wiki/u8glib
-//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // The RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626

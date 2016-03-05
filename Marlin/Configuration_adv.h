@@ -123,7 +123,7 @@
   // Play a little bit with small adjustments (0.5mm) and check the behaviour.
   // The M119 (endstops report) will start reporting the Z2 Endstop as well.
 
-  #define Z_DUAL_ENDSTOPS
+//  #define Z_DUAL_ENDSTOPS
 
   #ifdef Z_DUAL_ENDSTOPS
     #define Z2_STEP_PIN E2_STEP_PIN           // Stepper to be used to Z2 axis.
@@ -149,13 +149,6 @@
 
   //#define Y_DUAL_ENDSTOPS
 
-  #ifdef Y_DUAL_ENDSTOPS
-    #define Y2_STEP_PIN E2_STEP_PIN           // Stepper to be used to Y2 axis.
-    #define Y2_DIR_PIN E2_DIR_PIN
-    #define Y2_ENABLE_PIN E2_ENABLE_PIN
-    #define Y2_MAX_PIN 38                     //Endstop used for Y2 axis. In this case I'm using YMAX in a RAMPS FD (pin 38)
-    #define DISABLE_YMIN_ENDSTOP              //Better to disable the YMIN to avoid conflict. Just rename "YMIN_ENDSTOP" by the endstop you are using for Y2 axis.
-  #endif
 
 #endif // Y_DUAL_STEPPER_DRIVERS
 

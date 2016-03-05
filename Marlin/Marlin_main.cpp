@@ -1781,7 +1781,7 @@ static void homeaxis(AxisEnum axis) {
     }
 #endif
 
-    // Set a flag for Z motor locking
+    // Set a flag for Y motor locking
 #ifdef Y_DUAL_ENDSTOPS
     if (axis == Y_AXIS) In_Homing_Process(true);
 #endif
@@ -4079,8 +4079,10 @@ inline void gcode_M85() {
  *      (Follows the same syntax as G92)
  */
 inline void gcode_M92() {
+  bool at_least_one=false;
   for(int8_t i=0; i < NUM_AXIS; i++) {
     if (code_seen(axis_codes[i])) {
+      at_least_one = true;
       if (i == E_AXIS) {
         float value = code_value();
         if (value < 20.0) {
@@ -4094,6 +4096,13 @@ inline void gcode_M92() {
       else {
         axis_steps_per_unit[i] = code_value();
       }
+    }
+  }
+  if (!at_least_one) {
+    SERIAL_PROTOCOLPGM("Axis steps per unit"); SERIAL_EOL;
+    for(int8_t i=0; i < NUM_AXIS; i++) {
+      SERIAL_PROTOCOL(axis_steps_per_unit[i]);
+      SERIAL_EOL;
     }
   }
 }

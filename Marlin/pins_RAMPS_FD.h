@@ -27,7 +27,7 @@
 #define Y_DIR_PIN          64
 #define Y_ENABLE_PIN       46
 #define Y_MIN_PIN          24
-#define Y_MAX_PIN          38
+#define Y_MAX_PIN          -1 //38
 
 #define Z_STEP_PIN         67
 #define Z_DIR_PIN          66
@@ -106,8 +106,8 @@
       #ifdef REPRAP_DISCOUNT_SMART_CONTROLLER
         #define BEEPER 37
 
-        #define BTN_EN1 33
-        #define BTN_EN2 31
+        #define BTN_EN1 31
+        #define BTN_EN2 33
         #define BTN_ENC 35
 
         #define SDCARDDETECT 49

@@ -449,6 +449,8 @@
   #define HAS_X_MAX (PIN_EXISTS(X_MAX))
   #define HAS_Y_MIN (PIN_EXISTS(Y_MIN))
   #define HAS_Y_MAX (PIN_EXISTS(Y_MAX))
+  #define HAS_Y2_MIN (PIN_EXISTS(Y2_MIN))
+  #define HAS_Y2_MAX (PIN_EXISTS(Y2_MAX))
   #define HAS_Z_MIN (PIN_EXISTS(Z_MIN))
   #define HAS_Z_MAX (PIN_EXISTS(Z_MAX))
   #define HAS_Z2_MIN (PIN_EXISTS(Z2_MIN))
