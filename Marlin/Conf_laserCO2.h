@@ -45,8 +45,7 @@ Here are some standard links for getting your machine calibrated:
   #define Y2_ENABLE_PIN 45
 #endif
 #ifdef Y_DUAL_ENDSTOPS
-  #define Y2_MIN_PIN    38  // Y_MAX on RAMPS_FD
-  #define DISABLE_YMAX_ENDSTOP              //Better to disable the YMIN to avoid conflict. Just rename "YMIN_ENDSTOP" by the endstop you are using for Y2 axis.
+  #define Y2_MIN_PIN    26  // Z_MIN on RAMPS_FD
 #endif
 
 #define LASER
@@ -634,7 +633,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
  * MOVEMENT SETTINGS
  */
 
-#define HOMING_FEEDRATE {100*60, 100*60, 100*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {3000, 3000, 100*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
@@ -756,7 +755,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
 // ==> REMEMBER TO INSTALL U8glib to your ARDUINO library folder: http://code.google.com/p/u8glib/wiki/u8glib
-#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // The RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626

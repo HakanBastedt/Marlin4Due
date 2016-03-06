@@ -32,7 +32,7 @@
 #define Z_STEP_PIN         67
 #define Z_DIR_PIN          66
 #define Z_ENABLE_PIN       44
-#define Z_MIN_PIN          26
+#define Z_MIN_PIN          -1 // 26
 #define Z_MAX_PIN          34
 
 #define E0_STEP_PIN        36

@@ -360,6 +360,10 @@ void Config_RetrieveSettings() {
       EEPROM_READ_VAR(i, z_endstop_adj);
       dummy = 0.0f;
       for (int q=5; q--;) EEPROM_READ_VAR(i, dummy);
+    #elif defined(Y_DUAL_ENDSTOPS)
+      EEPROM_READ_VAR(i, y_endstop_adj);
+      dummy = 0.0f;
+      for (int q=5; q--;) EEPROM_READ_VAR(i, dummy);
     #else
       dummy = 0.0f;
       for (int q=6; q--;) EEPROM_READ_VAR(i, dummy);

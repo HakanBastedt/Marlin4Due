@@ -5347,7 +5347,7 @@ inline void gcode_M649() // M649 set laser options
     float next_feedrate = code_value();
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
-
+}
 #endif // LASER
 
 /**
