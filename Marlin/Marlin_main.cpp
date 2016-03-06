@@ -3150,7 +3150,6 @@ inline void gcode_M3()
   laser_intensity(laser.intensity);
   
   lcd_update();
-  SERIAL_PROTOCOLLNPGM("4");
 
   prepare_move();
 }
@@ -5335,8 +5334,6 @@ inline void gcode_M605() {
 #ifdef LASER
 inline void gcode_M649() // M649 set laser options
 {
-  SERIAL_PROTOCOLLN("Begin M649");
-  laser_diagnose();
   if (code_seen('S') && !IsStopped()) {
     laser.intensity = (float) code_value();
     laser.rasterlaserpower =  laser.intensity;
@@ -5350,8 +5347,6 @@ inline void gcode_M649() // M649 set laser options
     float next_feedrate = code_value();
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
-  SERIAL_PROTOCOLLN("Done");
-  laser_diagnose();}
 
 #endif // LASER
 
