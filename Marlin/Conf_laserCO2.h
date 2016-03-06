@@ -462,8 +462,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 #define X_MIN_POS 0
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS 550
-#define Y_MAX_POS 550
+#define X_MAX_POS 600
+#define Y_MAX_POS 600
 #define Z_MAX_POS 200
 
 //===========================================================================
@@ -678,7 +678,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //define this to enable EEPROM support
-//#define EEPROM_SETTINGS
+#define EEPROM_SETTINGS
 
 #ifdef EEPROM_SETTINGS
   // To disable EEPROM Serial responses and decrease program space by ~1700 byte: comment this out:

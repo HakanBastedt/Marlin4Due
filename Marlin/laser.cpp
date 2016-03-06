@@ -88,6 +88,9 @@ void laser_fire(float intensity = 100.0){
 void laser_extinguish(){
   if (laser.firing == LASER_ON) {
     laser.firing = LASER_OFF;
+    if (laser.diagnostics) {
+      SERIAL_ECHOLN("Laser being extinguished");
+    }
 
     laser_intensity(0);
 
@@ -115,6 +118,21 @@ void laser_set_mode(int mode){
     return;
   }
 }
+
+void laser_diagnose()
+{
+  if (!laser.diagnostics)
+    return;
+  SERIAL_ECHO_START;
+  SERIAL_ECHO("Intensity ");SERIAL_ECHOLN(laser.intensity);
+  SERIAL_ECHO("Duration  ");SERIAL_ECHOLN(laser.duration);
+  SERIAL_ECHO("Ppm       ");SERIAL_ECHOLN(laser.ppm);
+  SERIAL_ECHO("Mode      ");SERIAL_ECHOLN(laser.mode);
+  SERIAL_ECHO("Status    ");SERIAL_ECHOLN(laser.status);
+  SERIAL_ECHO("Fired     ");SERIAL_ECHOLN(laser.fired);
+  MYSERIAL.flush();
+}
+
 #ifdef LASER_PERIPHERALS
 bool laser_peripherals_ok(){
   return !digitalRead(LASER_PERIPHERALS_STATUS_PIN);

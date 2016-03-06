@@ -373,6 +373,7 @@ void laser_init_pwm(uint8_t pin, uint16_t freq)
   PWMC_SetDutyCycle(PWM_INTERFACE, HAL_laser_chan, 0);  // The 0 is the initial duty cycle
   PWMC_EnableChannel(PWM_INTERFACE, HAL_laser_chan);
 }
+
 void laser_intensity(uint8_t intensity)
 {
   PWMC_SetDutyCycle(PWM_INTERFACE, HAL_laser_chan, intensity);  

@@ -26,7 +26,6 @@
  * It has preliminary support for Matthew Roberts advance algorithm
  *  - http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
  */
-#include "DuePWM.h"
 #include "Marlin.h"
 
 #ifdef ENABLE_AUTO_BED_LEVELING
@@ -862,7 +861,7 @@ void get_command() {
 #endif
 
     serial_char = MYSERIAL.read();
-    //    SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
+    // SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
 
     //
     // If the character ends the line, or the line is full...
@@ -1817,6 +1816,7 @@ static void homeaxis(AxisEnum axis) {
     destination[axis] = 2 * home_bump_mm(axis) * axis_home_dir;
     line_to_destination();
     st_synchronize();
+    feedrate = homing_feedrate[axis];
 
 #ifdef Y_DUAL_ENDSTOPS
     if (axis == Y_AXIS) {
@@ -2030,6 +2030,7 @@ inline void gcode_G0_G1(int codenum) {
 
 #endif //FWRETRACT
 #ifdef LASER_FIRE_G1
+  laser_diagnose();
       if (laser.mode == RASTER)
 	laser_set_mode(CONTINUOUS);
       if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
@@ -2043,11 +2044,13 @@ inline void gcode_G0_G1(int codenum) {
         laser.status = LASER_OFF; // Switch off during G0
       }
     laser.fired = LASER_FIRE_G1;
+  laser_diagnose();
 #endif // LASER_FIRE_G1
 
     prepare_move();
 #ifdef LASER_FIRE_G1
     laser.status = LASER_OFF;
+  laser_diagnose();
 #endif // LASER_FIRE_G1
   }
 }
@@ -2175,8 +2178,9 @@ inline void gcode_G7()
   SERIAL_ECHOPAIR(" pixels ", laser.raster_num_pixels);
   SERIAL_ECHOLN(" ");
 #endif
+
   prepare_move();
-  
+
 }
 #endif // LASER_RASTER
 
@@ -5331,6 +5335,8 @@ inline void gcode_M605() {
 #ifdef LASER
 inline void gcode_M649() // M649 set laser options
 {
+  SERIAL_PROTOCOLLN("Begin M649");
+  laser_diagnose();
   if (code_seen('S') && !IsStopped()) {
     laser.intensity = (float) code_value();
     laser.rasterlaserpower =  laser.intensity;
@@ -5344,7 +5350,9 @@ inline void gcode_M649() // M649 set laser options
     float next_feedrate = code_value();
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
-}
+  SERIAL_PROTOCOLLN("Done");
+  laser_diagnose();}
+
 #endif // LASER
 
 /**
@@ -6873,7 +6881,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   if (laser.time / 60000 > 0) {
     laser.lifetime += laser.time / 60000; // convert to minutes
     laser.time = 0;
-    Config_StoreSettings();
+//    Config_StoreSettings();
   }
 #endif // LASER
 #ifdef LASER_PERIPHERALS
