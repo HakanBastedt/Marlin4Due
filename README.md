@@ -1,6 +1,12 @@
 # Marlin4Due 3D Printer Firmware
 <img align="right" src="Documentation/Logo/Marlin%20Logo%20GitHub.png" />
 
+This branch integrates the laser code from https://github.com/TurnkeyTyranny. That version of Marlin got outdated and I wanted a faster version for my 40W CO2 laser. Here is now a working laser code for Due. The first day I could engrave using the G7 raster command at almost 20000 mm/min at an image resolution of 270 dpi and 100 steps/mm in the Nema 17 stepper motors/drv8825 driver (1/16) microstep).
+
+I have integrated and made it work, credit goes of course to those that made the actual initial coding.
+
+*HakanBastedt*
+
 ### Story about Marlin 32bit
 Some time ago bobc started with this port. After some time sadly he stopped with the development. So I started to take his work and try to make some small modifications. After a couple of weeks I found the most importent things which speed up my new fork. Thanks to bobc for this great work! I'm not a professional programmer and without bobc I couldn't do that.
 
