@@ -1233,7 +1233,7 @@ void quickStop() {
           uint8_t old_x_dir_pin = X_DIR_READ,
                   old_y_dir_pin = Y_DIR_READ,
                   old_z_dir_pin = Z_DIR_READ;
-          //setup new step
+is          //setup new step
           X_DIR_WRITE(INVERT_X_DIR^z_direction);
           Y_DIR_WRITE(INVERT_Y_DIR^z_direction);
           Z_DIR_WRITE(INVERT_Z_DIR^z_direction);

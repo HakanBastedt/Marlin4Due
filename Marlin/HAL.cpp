@@ -211,7 +211,6 @@ void HAL_step_timer_start() {
   NVIC_EnableIRQ(irq); //enable Nested Vector Interrupt Controller
 }
 
-
 void HAL_temp_timer_start (uint8_t timer_num) {
 	Tc *tc = TimerConfig [timer_num].pTimerRegs;
 	IRQn_Type irq = TimerConfig [timer_num].IRQ_Id;
