@@ -356,6 +356,30 @@ void stopAdcFreerun(adc_channel_num_t chan)
   ADC->ADC_CHDR |= BIT(chan);
 }
 
+#ifdef LASER
+static uint32_t HAL_laser_chan;
+
+void laser_init_pwm(uint8_t pin, uint16_t freq)
+{
+  pmc_enable_periph_clk( PWM_INTERFACE_ID );
+  PWMC_ConfigureClocks( freq*LASER_PWM_MAX_DUTY, 0, VARIANT_MCK ); // Use only ClkA
+
+  HAL_laser_chan = g_APinDescription[pin].ulPWMChannel; 
+  SET_OUTPUT(pin);
+  PIO_Configure( g_APinDescription[pin].pPort,  g_APinDescription[pin].ulPinType,
+		 g_APinDescription[pin].ulPin,  g_APinDescription[pin].ulPinConfiguration);
+  PWMC_ConfigureChannel(PWM_INTERFACE, HAL_laser_chan, PWM_CMR_CPRE_CLKA, 0, 0);
+  PWMC_SetPeriod(PWM_INTERFACE, HAL_laser_chan, LASER_PWM_MAX_DUTY);
+  PWMC_SetDutyCycle(PWM_INTERFACE, HAL_laser_chan, 0);  // The 0 is the initial duty cycle
+  PWMC_EnableChannel(PWM_INTERFACE, HAL_laser_chan);
+}
+void laser_intensity(uint8_t intensity)
+{
+  PWMC_SetDutyCycle(PWM_INTERFACE, HAL_laser_chan, intensity);  
+}
+
+#endif
+
 // --------------------------------------------------------------------------
 //! @brief
 //! @param[in]

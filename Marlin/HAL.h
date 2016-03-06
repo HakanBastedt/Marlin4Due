@@ -147,6 +147,10 @@ uint16_t getAdcFreerun(adc_channel_num_t chan, bool wait_for_conversion = false)
 uint16_t getAdcSuperSample(adc_channel_num_t chan);
 void stopAdcFreerun(adc_channel_num_t chan);
 
+#define LASER_PWM_MAX_DUTY 255
+void laser_init_pwm(uint8_t pin, uint16_t freq);
+void laser_intensity(uint8_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
+
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------

@@ -56,7 +56,7 @@ Here are some standard links for getting your machine calibrated:
 // 2 = Two pin control - A firing pin for which LOW = off, HIGH = on, and a seperate intensity pin which carries a constant PWM signal and adjusts duty cycle to control intensity
 
 #define LASER_CONTROL 2
-#define LASER_POWER_DOWN
+//#define LASER_POWER_DOWN
 #define LASER_INTENSITY_PIN 6 // S2
 #define LASER_FIRING_PIN    7 // S1
 #define LASER_POWER_PIN     8 // 
@@ -86,7 +86,7 @@ Here are some standard links for getting your machine calibrated:
 //#define CUSTOM_MENDEL_NAME "Laser Cutter"
 #define LASER_WATTS 40.0
 #define LASER_DIAMETER 0.1 // milimeters
-#define LASER_PWM 20000 // hertz
+#define LASER_PWM_FREQUENCY 1000 // hertz
 #define LASER_FOCAL_HEIGHT 58.40 // z axis position at which the laser is focused
 #endif // LASER
 
@@ -103,8 +103,8 @@ Here are some standard links for getting your machine calibrated:
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
 // :[0,1,2,3,4,5,6,7]
-#define MYSERIAL SerialUSB // Native
-//#define MYSERIAL Serial    // Programming
+//#define MYSERIAL SerialUSB // Native
+#define MYSERIAL Serial    // Programming
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]

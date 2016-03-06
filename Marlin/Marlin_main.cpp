@@ -26,7 +26,7 @@
  * It has preliminary support for Matthew Roberts advance algorithm
  *  - http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
  */
-
+#include "DuePWM.h"
 #include "Marlin.h"
 
 #ifdef ENABLE_AUTO_BED_LEVELING
@@ -665,7 +665,8 @@ void enableStepperDrivers() { pinMode(STEPPER_RESET_PIN, INPUT); }  // set to in
  *    • Z probe sled
  *    • status LEDs
  */
-void setup() {
+void setup() 
+{
   setup_killpin();
   setup_filrunoutpin();
   setup_powerhold();
@@ -3141,9 +3142,12 @@ inline void gcode_M3()
 
   laser.status = LASER_ON;
   laser.fired = LASER_FIRE_SPINDLE;      
-  //*=*=*=*=*=*
-  lcd_update();
+
+  laser_intensity(laser.intensity);
   
+  lcd_update();
+  SERIAL_PROTOCOLLNPGM("4");
+
   prepare_move();
 }
 inline void gcode_M5()
@@ -3152,6 +3156,9 @@ inline void gcode_M5()
   digitalWrite(LASER_POWER_PIN, LOW); // Switch off no matter what
   analogWrite(LASER_POWER_PIN, 0); // Switch off no matter what
 #endif
+
+  laser_intensity(0);
+
   laser.status = LASER_OFF;
   lcd_update();
   prepare_move();
@@ -6868,7 +6875,6 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     laser.time = 0;
     Config_StoreSettings();
   }
-      laser_init();
 #endif // LASER
 #ifdef LASER_PERIPHERALS
   laser_peripherals_off();
@@ -7007,7 +7013,7 @@ void kill(const char *lcd_msg) {
   disable_all_steppers();
 
 #ifdef LASER
-  laser_init();
+  laser_extinguish();
 #endif // LASER
   
 #ifdef LASER_PERIPHERALS

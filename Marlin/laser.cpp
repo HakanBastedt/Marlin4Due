@@ -29,29 +29,7 @@ laser_t laser;
 
 void laser_init()
 {
-  uint8_t pin; 
-  // Initialize pwm for laser intensity control
-  pmc_enable_periph_clk(PWM_INTERFACE_ID);
-  PWMC_ConfigureClocks(LASER_PWM*LASER_PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK); // Use ClockA
-#if LASER_CONTROL == 1
-
-  pin = LASER_FIRING_PIN;
-
-#elseif LASER_CONTROL == 2
-
-  pin = LASER_INTENSITY_PIN;
-
-#endif
-  if (pin < 6 || pin > 9)
-    return;
-
-  laser.chan = g_APinDescription[pin].ulPWMChannel; 
-  PIO_Configure( g_APinDescription[pin].pPort,  g_APinDescription[pin].ulPinType,
-		 g_APinDescription[pin].ulPin,  g_APinDescription[pin].ulPinConfiguration);
-  PWMC_ConfigureChannel(PWM_INTERFACE, laser.chan, PWM_CMR_CPRE_CLKA, 0, 0);
-  PWMC_SetPeriod(PWM_INTERFACE, laser.chan, LASER_PWM_MAX_DUTY_CYCLE);
-  PWMC_SetDutyCycle(PWM_INTERFACE, laser.chan, 0);  // The 0 is the initial duty cycle
-  PWMC_EnableChannel(PWM_INTERFACE, laser.chan);
+  laser_init_pwm(LASER_INTENSITY_PIN, LASER_PWM_FREQUENCY);
 
 #ifdef LASER_PERIPHERALS
   digitalWrite(LASER_PERIPHERALS_PIN, HIGH);  // Laser peripherals are active LOW, so preset the pin
@@ -61,8 +39,10 @@ void laser_init()
   pinMode(LASER_PERIPHERALS_STATUS_PIN, INPUT);
 #endif // LASER_PERIPHERALS
 
+#if LASER_CONTROL == 2
   digitalWrite(LASER_FIRING_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
   pinMode(LASER_FIRING_PIN, OUTPUT);
+#endif
 
   // initialize state to some sane defaults
   laser.intensity = 100.0;
@@ -88,14 +68,13 @@ void laser_init()
   laser_extinguish();
 }
 
-void laser_fire(int intensity = 100.0){
+void laser_fire(float intensity = 100.0){ 
   laser.firing = LASER_ON;
   laser.last_firing = micros(); // microseconds of last laser firing
   if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
   if (intensity < 0) intensity = 0;
 
-  PWMC_SetDutyCycle(PWM_INTERFACE, laser.chan, LASER_PWM_MAX_DUTY_CYCLE*intensity/100.0);
-  PWMC_EnableChannel(PWM_INTERFACE, laser.chan);
+  laser_intensity(LASER_PWM_MAX_DUTY_CYCLE*intensity/100.0); // Range 0-255
 
 #if LASER_CONTROL == 2
   digitalWrite(LASER_FIRING_PIN, LASER_ARM);
@@ -109,9 +88,13 @@ void laser_fire(int intensity = 100.0){
 void laser_extinguish(){
   if (laser.firing == LASER_ON) {
     laser.firing = LASER_OFF;
-    
-    PWMC_SetDutyCycle(PWM_INTERFACE, laser.chan, 0);
+
+    laser_intensity(0);
+
+#if LASER_CONTROL == 2
     digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
+#endif
+
     laser.time += millis() - (laser.last_firing / 1000);
     
     if (laser.diagnostics) {

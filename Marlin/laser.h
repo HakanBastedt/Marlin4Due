@@ -38,7 +38,6 @@ typedef struct {
   bool diagnostics; // Verbose debugging output over serial
   unsigned int time; // temporary counter to limit eeprom writes
   unsigned int lifetime; // laser lifetime firing counter in minutes
-  uint32_t chan; // PWM channel
   #ifdef LASER_RASTER
     unsigned char raster_data[LASER_MAX_RASTER_LINE];
     unsigned char rasterlaserpower;
@@ -58,8 +57,12 @@ typedef struct {
 
 extern laser_t laser;
 
+/*
+laser_init_pwm() and laser_intensity() are in HAL.h
+*/
+
 void laser_init();
-void laser_fire(int intensity);
+void laser_fire(float intensity);
 void laser_extinguish();
 void laser_update_lifetime();
 void laser_set_mode(int mode);
