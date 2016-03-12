@@ -453,6 +453,14 @@ static void lcd_implementation_status_screen() {
     lcd_printPGM(PSTR(LCD_STR_DEGREE " ")); \
     if (T2 < 10) lcd.print(' ')
 
+#ifdef LASER
+  // Laser line 1
+	lcd.setCursor(0, 0);
+	lcd.print("Laser Power: ");
+	lcd.print(itostr3(int(laser.intensity)));
+	lcd.print(itostr3(int(laser.status)));
+
+#else
   //
   // Line 1
   //
@@ -481,20 +489,7 @@ static void lcd_implementation_status_screen() {
       #endif
 
     #endif // EXTRUDERS > 1 || TEMP_SENSOR_BED != 0
-
   #else // LCD_WIDTH >= 20
-
-#ifdef LASER
-	lcd.setCursor(6, 0);
-	if (fanSpeed >= 100)
-	  lcd_printPGM(PSTR("Laser "));
-	else if (fanSpeed >= 10)
-	  lcd_printPGM(PSTR("Laser  "));
-	else
-	  lcd_printPGM(PSTR("Laser   "));
-	lcd.print(fanSpeed);
-	
-#else 
 
     //
     // Hotend 0 Temperature
@@ -513,9 +508,8 @@ static void lcd_implementation_status_screen() {
       #endif
 
     #endif  // EXTRUDERS > 1 || TEMP_SENSOR_BED != 0
-#endif
   #endif // LCD_WIDTH >= 20
-
+#endif // LASER
   //
   // Line 2
   //

@@ -53,11 +53,11 @@
 
 #define BEEPER             -1
 
-#define FAN_PIN             8
+#define FAN_PIN             -1
 
 #define PS_ON_PIN          -1
 
-#define KILL_PIN           -1 //Dawson
+#define KILL_PIN           41 //Dawson
 
 
 #define HEATER_BED_PIN     -1    // BED //Dawson - OTW, not on the right power feed!

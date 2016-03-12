@@ -34,6 +34,9 @@
 #include "ultralcd.h"
 #include "ultralcd_st7920_u8glib_rrd.h"
 #include "Configuration.h"
+#ifdef LASER
+#include "laserbitmaps.h"
+#endif
 
 #if !defined(MAPPER_C2C3) && !defined(MAPPER_NON) && defined(USE_BIG_EDIT_FONT)
    #undef USE_BIG_EDIT_FONT
@@ -272,9 +275,50 @@ static void _draw_heater_status(int x, int heater) {
 
 static void lcd_implementation_status_screen() {
   u8g.setColorIndex(1); // black on white
-
+#ifndef LASER
   // Symbols menu graphics, animated fan
   u8g.drawBitmapP(9,1,STATUS_SCREENBYTEWIDTH,STATUS_SCREENHEIGHT, (blink % 2) && fanSpeed ? status_screen0_bmp : status_screen1_bmp);
+#else
+ #ifdef LASER_PERIPHERALS
+ if (laser_peripherals_ok()) {
+	 u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
+ }
+ #endif // LASER_PERIPHERALS
+ u8g.setFont(FONT_STATUSMENU_NAME);
+ u8g.setColorIndex(1);
+ u8g.setPrintPos(3,6);
+ if (current_block->laser_status == LASER_ON) {
+   u8g.setScale2x2(); 
+   u8g.drawBitmapP(5,max(0,14-ICON_HEIGHT), ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
+   u8g.undoScale();
+   
+   int oldFont = currentfont;
+   u8g.setFont(u8g_font_helvB18r); 
+   u8g.setPrintPos(32,25);
+   unsigned char v = current_block->laser_intensity;
+   if (v < 99)
+     u8g.print(' ');
+   if (v < 9)
+     u8g.print(' ');
+   u8g.print(v);
+   u8g.print('%');
+   lcd_setFont(oldFont);
+   
+ } else {
+   u8g.setScale2x2(); 
+   u8g.drawBitmapP(5,max(0,14-ICON_HEIGHT), ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
+   u8g.undoScale();
+
+   int oldFont = currentfont;
+   u8g.setFont(u8g_font_helvB18r); 
+   u8g.setPrintPos(32,25);
+   u8g.print('-');
+   u8g.print('-');
+   u8g.print('-');
+   u8g.print('%');
+   lcd_setFont(oldFont);
+ }
+#endif // LASER
  
   #ifdef SDSUPPORT
     // SD Card Symbol
@@ -306,12 +350,13 @@ static void lcd_implementation_status_screen() {
     }
   #endif
 
+#ifndef LASER
   // Extruders
   for (int i=0; i<EXTRUDERS; i++) _draw_heater_status(6 + i * 25, i);
 
   // Heatbed
   if (EXTRUDERS < 4) _draw_heater_status(81, -1);
-
+#endif
   // Fan
   lcd_setFont(FONT_STATUSMENU);
   u8g.setPrintPos(104,27);
