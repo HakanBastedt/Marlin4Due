@@ -278,9 +278,15 @@ Here are some standard links for getting your machine calibrated:
 #ifdef PIDTEMPBED
 //120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-    #define  DEFAULT_bedKp 300
-    #define  DEFAULT_bedKi 18
-    #define  DEFAULT_bedKd 1200
+// 12V silicone pad heater    
+//#define  DEFAULT_bedKp 300
+//    #define  DEFAULT_bedKi 18
+//    #define  DEFAULT_bedKd 1200
+
+// 230V Silicone pad heater        
+    #define  DEFAULT_bedKp 51
+    #define  DEFAULT_bedKi 4.6
+    #define  DEFAULT_bedKd 140
 #define PID_BED_INTEGRAL_DRIVE_MAX MAX_BED_POWER  //limit for the integral term
 
 //120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)

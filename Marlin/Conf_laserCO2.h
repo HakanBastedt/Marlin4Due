@@ -54,13 +54,15 @@ Here are some standard links for getting your machine calibrated:
 // 1 = Single pin control - LOW when off, HIGH when on, PWM to adjust intensity
 // 2 = Two pin control - A firing pin for which LOW = off, HIGH = on, and a seperate intensity pin which carries a constant PWM signal and adjusts duty cycle to control intensity
 
-#define LASER_CONTROL 2
+#define LASER_CONTROL 1
 //#define LASER_POWER_DOWN
-#define LASER_INTENSITY_PIN 6 // S2
+#define LASER_INTENSITY_PIN 5 // S2
 #define LASER_FIRING_PIN    7 // S1
 #define LASER_POWER_PIN     8 // 
+#define LASER_LOW_PWM
+
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
-// #define HIGH_TO_FIRE
+//#define HIGH_TO_FIRE
 
 //// The following defines select which G codes tell the laser to fire.  It's OK to uncomment more than one.
 #define LASER_FIRE_G1 10 // fire the laser on a G1 move, extinguish when the move ends
@@ -86,7 +88,7 @@ Here are some standard links for getting your machine calibrated:
 #define LASER_WATTS 40.0
 #define LASER_DIAMETER 0.1 // milimeters
 #define LASER_PWM_FREQUENCY 20000 // hertz
-#define LASER_FOCAL_HEIGHT 58.40 // z axis position at which the laser is focused
+#define LASER_FOCAL_HEIGHT 50.80 // z axis position at which the laser is focused
 #endif // LASER
 
 
@@ -104,6 +106,7 @@ Here are some standard links for getting your machine calibrated:
 // :[0,1,2,3,4,5,6,7]
 //#define MYSERIAL SerialUSB // Native
 #define MYSERIAL Serial    // Programming
+//#define MYSERIAL Serial3    // ESP8266
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]

@@ -3374,7 +3374,9 @@ inline void gcode_M42() {
     if (pin_number > -1) {
       pinMode(pin_number, OUTPUT);
       digitalWrite(pin_number, pin_status);
+#ifndef LASER
       analogWrite(pin_number, pin_status);
+#endif
     }
   } // code_seen('S')
 }
