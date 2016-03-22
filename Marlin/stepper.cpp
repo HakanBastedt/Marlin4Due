@@ -852,6 +852,9 @@ HAL_STEP_TIMER_ISR {
     if (step_events_completed >= current_block->step_event_count) {
       current_block = NULL;
       plan_discard_current_block();
+#ifdef LASER
+      laser_extinguish();
+#endif
     }
   } // current_block != NULL
 }
