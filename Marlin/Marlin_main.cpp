@@ -2027,30 +2027,30 @@ inline void gcode_G0_G1(int codenum) {
 	return;
       }
     }
-
 #endif //FWRETRACT
+    // G0
+    if (codenum == 0) { 
+      prepare_move();
+      return;
+    }
+    // G1
 #ifdef LASER_FIRE_G1
-  laser_diagnose();
-      if (laser.mode == RASTER)
-	laser_set_mode(CONTINUOUS);
+      laser_diagnose();
       if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
       if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
       if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
       if (code_seen('D') && !IsStopped()) laser.diagnostics = (bool) code_value();
       if (code_seen('B') && !IsStopped()) laser_set_mode((int) code_value());
-      if (codenum == 1) {
-        laser.status = LASER_ON;  // G1
-      } else {
-        laser.status = LASER_OFF; // Switch off during G0
-      }
-    laser.fired = LASER_FIRE_G1;
-  laser_diagnose();
+      laser.status = LASER_ON;  // G1
+      laser.fired = LASER_FIRE_G1;
+      laser_diagnose();
 #endif // LASER_FIRE_G1
 
-    prepare_move();
+      prepare_move();
+
 #ifdef LASER_FIRE_G1
-    laser.status = LASER_OFF;
-  laser_diagnose();
+      laser.status = LASER_OFF;
+      laser_diagnose();
 #endif // LASER_FIRE_G1
   }
 }
@@ -2079,8 +2079,6 @@ inline void gcode_G2_G3(bool clockwise) {
       code_seen('J') ? code_value() : 0
     };
 #ifdef LASER_FIRE_G1
-    if (laser.mode == RASTER)
-      laser_set_mode(CONTINUOUS);
     if (code_seen('S') && !IsStopped()) laser.intensity = (float) code_value();
     if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
     if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
@@ -2170,7 +2168,7 @@ inline void gcode_G7()
   
   laser.mode = RASTER;
   laser.status = LASER_ON;
-  laser.fired = RASTER;
+  laser.fired = RASTER; // Doesn't matter what it says
 #if 0  
   SERIAL_ECHOPAIR(" mm_per_ppm ", laser.raster_mm_per_pulse);
   SERIAL_ECHOPAIR(" ppm ", laser.ppm);
@@ -2181,6 +2179,7 @@ inline void gcode_G7()
 
   prepare_move();
 
+  laser.status = LASER_OFF;
 }
 #endif // LASER_RASTER
 
@@ -3147,8 +3146,6 @@ inline void gcode_M3()
   laser.status = LASER_ON;
   laser.fired = LASER_FIRE_SPINDLE;      
 
-  laser_intensity(laser.intensity);
-  
   lcd_update();
 
   prepare_move();
@@ -3159,8 +3156,6 @@ inline void gcode_M5()
   digitalWrite(LASER_POWER_PIN, LOW); // Switch off no matter what
   analogWrite(LASER_POWER_PIN, 0); // Switch off no matter what
 #endif
-
-  laser_intensity(0);
 
   laser.status = LASER_OFF;
   lcd_update();
@@ -3371,12 +3366,12 @@ inline void gcode_M42() {
     if (pin_number == FAN_PIN) fanSpeed = pin_status;
 #endif
 
+    st_synchronize(); // Do it at the right moment
+
     if (pin_number > -1) {
       pinMode(pin_number, OUTPUT);
       digitalWrite(pin_number, pin_status);
-#ifndef LASER
       analogWrite(pin_number, pin_status);
-#endif
     }
   } // code_seen('S')
 }

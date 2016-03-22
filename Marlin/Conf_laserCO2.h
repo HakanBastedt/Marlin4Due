@@ -57,9 +57,10 @@ Here are some standard links for getting your machine calibrated:
 #define LASER_CONTROL 1
 //#define LASER_POWER_DOWN
 #define LASER_INTENSITY_PIN 5 // S2
-#define LASER_FIRING_PIN    7 // S1
-#define LASER_POWER_PIN     8 // 
+//#define LASER_FIRING_PIN    7 // S1
+//#define LASER_POWER_PIN     -1 // 
 #define LASER_LOW_PWM
+// LASER_AIR 8
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 //#define HIGH_TO_FIRE
@@ -67,7 +68,7 @@ Here are some standard links for getting your machine calibrated:
 //// The following defines select which G codes tell the laser to fire.  It's OK to uncomment more than one.
 #define LASER_FIRE_G1 10 // fire the laser on a G1 move, extinguish when the move ends
 #define LASER_FIRE_SPINDLE 11 // fire the laser on M3, extinguish on M5
-#define LASER_FIRE_E 12 // fire the laser when the E axis moves
+//#define LASER_FIRE_E 12 // fire the laser when the E axis moves
 
 //// Raster mode enables the laser to etch bitmap data at high speeds.  Increases command buffer size substantially.
 #define LASER_RASTER
@@ -758,7 +759,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
 // ==> REMEMBER TO INSTALL U8glib to your ARDUINO library folder: http://code.google.com/p/u8glib/wiki/u8glib
-#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // The RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626
