@@ -88,6 +88,7 @@
  * G2  - CW ARC
  * G3  - CCW ARC
  * G4  - Dwell S<seconds> or P<milliseconds>
+ * G7  - Laser engrave with base64-formatted data
  * G10 - retract filament according to settings of M207
  * G11 - retract recover filament according to settings of M208
  * G28 - Home one or more axes
@@ -103,6 +104,8 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
+ * M3   - Laser on
+ * M5   - Laser off - But better to use M649 S0!
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -215,6 +218,11 @@
  * M365 - SCARA calibration: Scaling factor, X, Y, Z axis
  * ************* SCARA End ***************
  *
+ * Laser specific code
+ * M649 - Set laser cutting options
+ * M650 - Don't update the LCD - improves raster cutting speed
+ *
+ *
  * ************ Custom codes - This can change to suit future G-code regulations
  * M100 - Watch Free Memory (For Debugging Only)
  * M851 - Set probe's Z offset (mm above extruder -- The value will always be negative)
@@ -268,9 +276,6 @@ float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 uint8_t active_extruder = 0;
 int fanSpeed = 0;
-#ifdef LASER
-int oldFanSpeed = 0;
-#endif
 bool cancel_heatup = false;
 
 const char errormagic[] PROGMEM = "Error:";
@@ -293,6 +298,9 @@ millis_t print_job_stop_ms = 0;  ///< Print job stop time
 static uint8_t target_extruder;
 bool no_wait_for_cooling = true;
 bool target_direction;
+#ifdef LASER
+bool laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
+#endif
 
 #ifdef ENABLE_AUTO_BED_LEVELING
 int xy_travel_speed = XY_TRAVEL_SPEED;
@@ -3719,16 +3727,7 @@ inline void gcode_M105() {
 /**
  * M106: Set Fan Speed
  */
-#ifdef LASER
-  inline void gcode_M106() { 
-    if (code_seen('S')) 
-      fanSpeed = oldFanSpeed = constrain(code_value_short(), 0, 255); 
-    else 
-      fanSpeed = oldFanSpeed; 
-  }
-#else
   inline void gcode_M106() { fanSpeed = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255; }
-#endif
 
 /**
  * M107: Fan Off
@@ -5345,6 +5344,27 @@ inline void gcode_M649() // M649 set laser options
     if(next_feedrate > 0.0) feedrate = next_feedrate;
   }
 }
+
+inline void gcode_M650() // M650 Don't update the LCD P0 = update(default) P1 = don't update
+{
+  if (code_seen('P')) {
+    int val = code_value();
+    switch (val) {
+      case 0:
+	laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
+	return;
+	break;
+      case 1:
+	laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
+	return;
+	break;
+      }
+  }
+  SERIAL_ECHO_START;
+  SERIAL_ECHO("LCD Update setting: ");
+  SERIAL_ECHOLN(laserUpdateLCD == 0 ? "ON" : "OFF");
+}
+
 #endif // LASER
 
 /**
@@ -6094,6 +6114,9 @@ void process_next_command() {
 #ifdef LASER
     case 649:
       gcode_M649();
+      break;
+    case 650:
+      gcode_M650();
       break;
 #endif
 

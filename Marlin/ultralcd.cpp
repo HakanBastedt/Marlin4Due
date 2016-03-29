@@ -1650,7 +1650,10 @@ int lcd_strlen_P(const char *s) {
  */
 void lcd_update() {
 #ifdef LASER
-  // Add code to not update if running with pulsed laser
+  //  Code to not update if running speed critical - M650
+  extern bool laserUpdateLCD;
+  if (!laserUpdateLCD)
+    return;
 #endif
   #ifdef ULTIPANEL
     static millis_t return_to_status_ms = 0;
