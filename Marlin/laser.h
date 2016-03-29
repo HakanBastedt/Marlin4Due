@@ -63,6 +63,7 @@ laser_init_pwm() and laser_intensity() are in HAL.h
 
 void laser_init();
 void laser_fire(float intensity);
+void laser_fire_byte(uint8_t intensity);
 void laser_extinguish();
 void laser_update_lifetime();
 void laser_set_mode(int mode);

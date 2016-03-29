@@ -68,7 +68,8 @@ void laser_init()
   laser_extinguish();
 }
 
-void laser_fire(float intensity = 100.0){ 
+void laser_fire(float intensity = 100.0) // Fire with range 0-100
+{ 
   laser.firing = LASER_ON;
   laser.last_firing = micros(); // microseconds of last laser firing
   if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
@@ -82,6 +83,22 @@ void laser_fire(float intensity = 100.0){
   
   if (laser.diagnostics) {
     SERIAL_ECHOLN("Laser fired");
+  }
+}
+
+void laser_fire_byte(uint8_t intensity) // Fire with byte-range 0-255
+{
+  laser.firing = LASER_ON;
+  laser.last_firing = micros(); // microseconds of last laser firing
+
+  laser_intensity(LASER_PWM_MAX_DUTY_CYCLE*intensity/255.0); // Range 0-255
+
+#if LASER_CONTROL == 2
+  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+#endif
+  
+  if (laser.diagnostics) {
+    SERIAL_ECHOLN("Laser_byte fired");
   }
 }
 

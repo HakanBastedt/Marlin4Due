@@ -1649,6 +1649,9 @@ int lcd_strlen_P(const char *s) {
  * Warning: This function is called from interrupt context!
  */
 void lcd_update() {
+#ifdef LASER
+  // Add code to not update if running with pulsed laser
+#endif
   #ifdef ULTIPANEL
     static millis_t return_to_status_ms = 0;
   #endif
