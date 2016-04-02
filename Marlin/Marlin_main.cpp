@@ -221,6 +221,7 @@
  * Laser specific code
  * M649 - Set laser cutting options
  * M650 - Don't update the LCD - improves raster cutting speed
+ * M651 - Make ms laser pulse. For mirror alignment etc
  *
  *
  * ************ Custom codes - This can change to suit future G-code regulations
@@ -5365,6 +5366,26 @@ inline void gcode_M650() // M650 Don't update the LCD P0 = update(default) P1 = 
   SERIAL_ECHOLN(laserUpdateLCD == 0 ? "ON" : "OFF");
 }
 
+inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignment etc
+{
+  float m651_intensity = 100;
+  unsigned long m651_duration = 1;
+  if (code_seen('S') && !IsStopped()) 
+    m651_intensity = (float) code_value();
+  if (code_seen('L') && !IsStopped()) // Milliseconds
+    m651_duration = (unsigned long) labs(code_value());
+
+  st_synchronize();
+  unsigned long stop_at = millis() + m651_duration;
+  if (m651_duration > 0 && m651_duration < 10000) { // Arbitrary limit at 10 seconds
+    laser_fire(m651_intensity);
+    while (millis() < stop_at) // Wasteful wait
+      ;
+    laser_fire(0);
+  }
+}
+
+
 #endif // LASER
 
 /**
@@ -6117,6 +6138,9 @@ void process_next_command() {
       break;
     case 650:
       gcode_M650();
+      break;
+    case 651:
+      gcode_M651();
       break;
 #endif
 
