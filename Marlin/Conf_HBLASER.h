@@ -45,7 +45,7 @@ Here are some standard links for getting your machine calibrated:
   #define Y2_ENABLE_PIN 3
 #endif
 #ifdef Y_DUAL_ENDSTOPS
-  #define Y2_MIN_PIN    51  // Z_MIN on RAMPS_FD
+  #define Y2_MIN_PIN    51 
 #endif
 
 #define LASER
@@ -90,6 +90,9 @@ Here are some standard links for getting your machine calibrated:
 #define LASER_DIAMETER 0.1 // milimeters
 #define LASER_PWM_FREQUENCY 20000 // hertz
 #define LASER_FOCAL_HEIGHT 50.80 // z axis position at which the laser is focused
+
+#define HB_SSD1963
+
 #endif // LASER
 
 
@@ -681,7 +684,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //define this to enable EEPROM support
-#define EEPROM_SETTINGS
+//#define EEPROM_SETTINGS
 
 #ifdef EEPROM_SETTINGS
   // To disable EEPROM Serial responses and decrease program space by ~1700 byte: comment this out:

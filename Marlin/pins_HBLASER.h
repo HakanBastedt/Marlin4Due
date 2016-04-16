@@ -6,6 +6,8 @@
 
 //
 
+#define UNUSED_PIN         71 // SCL1
+
 #define X_STEP_PIN         63
 #define X_DIR_PIN          62
 #define X_ENABLE_PIN       12
@@ -18,15 +20,15 @@
 #define Y_MIN_PIN          50
 #define Y_MAX_PIN          -1 //38
 
-#define Z_STEP_PIN         1 // MUST
-#define Z_DIR_PIN          1 // MUST
-#define Z_ENABLE_PIN       1 // MUST
+#define Z_STEP_PIN         UNUSED_PIN // MUST
+#define Z_DIR_PIN          UNUSED_PIN // MUST
+#define Z_ENABLE_PIN       UNUSED_PIN // MUST
 #define Z_MIN_PIN          -1 // 26
 #define Z_MAX_PIN          -1
 
-#define E0_STEP_PIN        1 // MUST
-#define E0_DIR_PIN         1 // MUST
-#define E0_ENABLE_PIN      1 // MUST
+#define E0_STEP_PIN        UNUSED_PIN // MUST
+#define E0_DIR_PIN         UNUSED_PIN // MUST
+#define E0_ENABLE_PIN      UNUSED_PIN // MUST
 
 #define E1_STEP_PIN        -1
 #define E1_DIR_PIN         -1
@@ -59,7 +61,7 @@
 
 #define TEMP_BED_PIN       -1   // ANALOG NUMBERING
 
-#define TEMP_0_PIN          1   // MUST
+#define TEMP_0_PIN          7  // MUST Will get rid of this later
 #define TEMP_1_PIN         -1  // 2    // ANALOG NUMBERING
 #define TEMP_2_PIN         -1  // 3     // ANALOG NUMBERING
 

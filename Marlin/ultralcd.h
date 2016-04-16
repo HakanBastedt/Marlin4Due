@@ -4,7 +4,20 @@
 #include "Marlin.h"
 #include "buzzer.h"
 
-#ifdef ULTRA_LCD
+#if defined(HB_SSD1963)
+
+void lcd_init();
+void lcd_update();
+#define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
+#define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
+void lcd_setstatus(const char* message, const bool persist=false);
+void lcd_setstatuspgm(const char* message, const uint8_t level=0);
+bool lcd_hasstatus();
+void lcd_setalertstatuspgm(const char* message);
+void lcd_reset_alert_level();
+void lcd_buttons_update();
+
+#elif defined(ULTRA_LCD)
   int lcd_strlen(char *s);
   int lcd_strlen_P(const char *s);
   void lcd_update();
@@ -106,6 +119,7 @@
   #endif//NEWPANEL
 
 #else //no LCD
+
   FORCE_INLINE void lcd_update() {}
   FORCE_INLINE void lcd_init() {}
   FORCE_INLINE bool lcd_hasstatus() { return false; }

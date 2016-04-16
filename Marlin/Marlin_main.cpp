@@ -870,7 +870,7 @@ void get_command() {
 #endif
 
     serial_char = MYSERIAL.read();
-    // SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
+    SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
 
     //
     // If the character ends the line, or the line is full...

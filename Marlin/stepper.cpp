@@ -1038,6 +1038,13 @@ void st_init() {
     #endif
   #endif
 
+  #if HAS_Y2_MIN
+    SET_INPUT(Y2_MIN_PIN);
+    #ifdef ENDSTOPPULLUP_YMIN
+      PULLUP(Y2_MIN_PIN,HIGH);
+    #endif
+  #endif
+
   #if HAS_Z_MIN
     SET_INPUT(Z_MIN_PIN);
     #ifdef ENDSTOPPULLUP_ZMIN
@@ -1056,6 +1063,13 @@ void st_init() {
     SET_INPUT(Y_MAX_PIN);
     #ifdef ENDSTOPPULLUP_YMAX
       PULLUP(Y_MAX_PIN,HIGH);
+    #endif
+  #endif
+
+  #if HAS_Y2_MAX
+    SET_INPUT(Y2_MAX_PIN);
+    #ifdef ENDSTOPPULLUP_YMAX
+      PULLUP(Y2_MAX_PIN,HIGH);
     #endif
   #endif
 
