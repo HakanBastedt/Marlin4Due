@@ -10,11 +10,13 @@
 // Declare which fonts we will be using
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
+extern uint8_t SixteenSegment40x60[];
 extern uint8_t Dingbats1_XL[];
 
 UTFT          myGLCD(20, 42, 41, 39, 38);
 UTouch        myTouch(43, 44, 45, 46, 47);
-UTFT_Buttons  myButtons(&myGLCD, &myTouch);
+UTFT_Buttons  LCD_table_Buttons(&myGLCD, &myTouch);
+UTFT_Buttons  LCD_main_Buttons(&myGLCD, &myTouch);
 
 #define STEPS_REV    200
 #define MICROSTEPPING 32
@@ -28,26 +30,35 @@ typedef struct Motor {
 } Motor;
 
 Motor Motors[7] = {
-  { .EnablePin=61, .StepPin= 6, .DirectionPin= 7},
-  { .EnablePin=60, .StepPin=15, .DirectionPin=14},
-  { .EnablePin=59, .StepPin=17, .DirectionPin=16},
-  { .EnablePin=58, .StepPin=19, .DirectionPin=18},
-  { .EnablePin=12, .StepPin=63, .DirectionPin=62},
-  { .EnablePin= 9, .StepPin=65, .DirectionPin=64},
-  { .EnablePin= 3, .StepPin=67, .DirectionPin=66}
+  { .EnablePin=A_ENABLE_PIN,  .StepPin=A_STEP_PIN,  .DirectionPin=A_DIR_PIN},
+  { .EnablePin=B_ENABLE_PIN,  .StepPin=B_STEP_PIN,  .DirectionPin=B_DIR_PIN},
+  { .EnablePin=C_ENABLE_PIN,  .StepPin=C_STEP_PIN,  .DirectionPin=C_DIR_PIN},
+  { .EnablePin=D_ENABLE_PIN,  .StepPin=D_STEP_PIN,  .DirectionPin=D_DIR_PIN},
+  { .EnablePin=X_ENABLE_PIN,  .StepPin=X_STEP_PIN,  .DirectionPin=X_DIR_PIN},
+  { .EnablePin=Y_ENABLE_PIN,  .StepPin=Y_STEP_PIN,  .DirectionPin=Y_DIR_PIN},
+  { .EnablePin=Y2_ENABLE_PIN, .StepPin=Y2_STEP_PIN, .DirectionPin=Y2_DIR_PIN}
 };
+ struct {
+   int gotoTable;
+   bool buttonsDone;
+} LCD_main;
 
-const byte X_LimPin = 49, Y1_LimPin = 50, Y2_LimPin = 51, Z_LimPin = 2;
+struct {
+  int motorAUp, motorADown, motorBUp, motorBDown, motorCUp, motorCDown, motorDUp, motorDDown;
+  int motorAllUp, motorAllDown;
+  int gotoMain;
+  bool buttonsDone;
+} LCD_table;
+
+const byte X_LimPin = X_MAX_PIN, Y1_LimPin = Y_MIN_PIN, Y2_LimPin = Y2_MIN_PIN;
 const byte A_motor = 0, B_motor = 1, C_motor = 2, D_motor = 3, X_motor = 4, Y1_motor = 5, Y2_motor = 6;
 
 const byte LaserPin = 4, Laser2Pin = 4, MosFet1Pin = 11, NosFet2Pin = 10;
-int numberOfSteps = 100;
-byte ledPin = 13;
-int pulseWidthMicros = 10;  // microseconds
-int microsbetweenSteps = 500; // microeconds
 
 void lcd_main_static();
 void lcd_main_dynamic();
+void lcd_table_static();
+void lcd_table_dynamic();
 
 void lcd_init() 
 {
@@ -63,17 +74,22 @@ void lcd_init()
   myTouch.InitTouch();
   myTouch.setPrecision(PREC_MEDIUM);
 
-  myButtons.setTextFont(BigFont);
-  myButtons.setSymbolFont(Dingbats1_XL);
+  LCD_main_Buttons.setTextFont(BigFont);
+  LCD_main_Buttons.setSymbolFont(Dingbats1_XL);
+
+  LCD_table_Buttons.setTextFont(BigFont);
+  LCD_table_Buttons.setSymbolFont(Dingbats1_XL);
+
+  LCD_table.buttonsDone = false;
+  LCD_main.buttonsDone = false;
 
   lcd_main_static();
 }
 
-void stepSomeUp(byte stepPin, byte dirPin, boolean up);
+void stepSomeUp(int m, boolean up);
 void stepAllUp(boolean up);
 
-int motorAUp, motorADown, motorBUp, motorBDown, motorCUp, motorCDown, motorDUp, motorDDown;
-int motorAllUp, motorAllDown;
+int LCD_menu = 0; // Start at main
 
 void lcd_main_static()
 {
@@ -81,73 +97,109 @@ void lcd_main_static()
   const int bH = 80, dH = 480;
   const int dist = 10;
 
-  motorBUp     = myButtons.addButton(dist,           dist,       bW, bH, " B+ ");
-  motorBDown   = myButtons.addButton(2 * dist + bW,    dist,       bW, bH, " B- ");
-  motorAUp     = myButtons.addButton(dist,           dH - dist - bH, bW, bH, " A+ ");
-  motorADown   = myButtons.addButton(2 * dist + bW,    dH - dist - bH, bW, bH, " A- ");
-  motorCUp     = myButtons.addButton(dW - 2 * (dist + bW), dist,       bW, bH, " C+ ");
-  motorCDown   = myButtons.addButton(dW - dist - bW,     dist,       bW, bH, " C- ");
-  motorDUp     = myButtons.addButton(dW - 2 * (dist + bW), dH - dist - bH, bW, bH, " D+ ");
-  motorDDown   = myButtons.addButton(dW - dist - bW,     dH - dist - bH, bW, bH, " D- ");
-  motorAllUp   = myButtons.addButton(dW / 2 - bW - dist / 2, dH / 2 - bH / 2,  bW, bH, " All+ ");
-  motorAllDown = myButtons.addButton(dW / 2 + dist / 2,    dH / 2 - bH / 2,  bW, bH, " All- ");
-  myButtons.drawButtons();
-
-  myGLCD.print("You pressed:", 400, 200);
-  myGLCD.setColor(VGA_BLACK);
-  myGLCD.setBackColor(VGA_WHITE);
-  myGLCD.print(" ---    ", 500, 240);
-
+  if (!LCD_table.buttonsDone) {
+    LCD_main.gotoTable       = LCD_main_Buttons.addButton(dist,           dist,       bW, bH, " Motor ");
+    LCD_main.buttonsDone = true;
+  }
+  myGLCD.setColor(255, 255, 0);
+  myGLCD.fillRect(0, 0, 799, 479);
+  myGLCD.setBackColor(255, 255, 0);
+  myGLCD.setColor(100, 100, 100);
+  myGLCD.setFont(SixteenSegment40x60);
+  LCD_main_Buttons.drawButtons(); 
 }
 
 void lcd_main_dynamic()
 {
+  float x = current_position[X_AXIS];
+  float y = current_position[Y_AXIS];
+  myGLCD.printNumF(x, 2, 50+(x<10.0 ? 80 : (x < 100.0 ? 40: 0)), 100);
+  myGLCD.printNumF(y, 2, 50+(y<10.0 ? 80 : (y < 100.0 ? 40: 0)), 200);
   while (myTouch.dataAvailable() == true)
   {
-    int pressed_button = myButtons.checkButtons();
+    int pressed_button = LCD_main_Buttons.checkButtons();
 
-    if (pressed_button == motorAUp) {
-      myGLCD.print("A up", 500, 240);
-      stepSomeUp(Motors[A_motor].StepPin, Motors[A_motor].DirectionPin, true);
+    if (pressed_button == LCD_main.gotoTable) {
+      LCD_menu = 1; // Goto table
+      lcd_table_static();
     }
-    if (pressed_button == motorADown) {
-      myGLCD.print("A down", 500, 240);
-      stepSomeUp(Motors[A_motor].StepPin, Motors[A_motor].DirectionPin, false);
+  }
+}
+
+void lcd_table_static()
+{
+  const int bW = 100, dW = 800;
+  const int bH = 80, dH = 480;
+  const int dist = 10;
+
+  if (!LCD_table.buttonsDone) {
+    LCD_table.motorBUp     = LCD_table_Buttons.addButton(dist,                   dist,            bW, bH, " B+ ");
+    LCD_table.motorBDown   = LCD_table_Buttons.addButton(2 * dist + bW,          dist,            bW, bH, " B- ");
+    LCD_table.motorAUp     = LCD_table_Buttons.addButton(dist,                   dH - dist - bH,  bW, bH, " A+ ");
+    LCD_table.motorADown   = LCD_table_Buttons.addButton(2 * dist + bW,          dH - dist - bH,  bW, bH, " A- ");
+    LCD_table.motorCUp     = LCD_table_Buttons.addButton(dW - 2 * (dist + bW),   dist,            bW, bH, " C+ ");
+    LCD_table.motorCDown   = LCD_table_Buttons.addButton(dW - dist - bW,         dist,            bW, bH, " C- ");
+    LCD_table.motorDUp     = LCD_table_Buttons.addButton(dW - 2 * (dist + bW),   dH - dist - bH,  bW, bH, " D+ ");
+    LCD_table.motorDDown   = LCD_table_Buttons.addButton(dW - dist - bW,         dH - dist - bH,  bW, bH, " D- ");
+    LCD_table.motorAllUp   = LCD_table_Buttons.addButton(dW / 2 - bW - dist / 2, dH / 2 - bH / 2, bW, bH, " All+ ");
+    LCD_table.motorAllDown = LCD_table_Buttons.addButton(dW / 2 + dist / 2,      dH / 2 - bH / 2, bW, bH, " All- ");
+    LCD_table.gotoMain     = LCD_table_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, " Main ");
+    LCD_table.buttonsDone = true;
+  }
+  myGLCD.setColor(0, 0, 100);
+  myGLCD.fillRect(0, 0, 799, 479);
+  myGLCD.setBackColor(0, 0, 100);
+  myGLCD.setColor(255, 255, 0);
+  LCD_table_Buttons.drawButtons();
+  
+#if 0
+  myGLCD.print("You pressed:", 400, 200);
+  myGLCD.setColor(VGA_BLACK);
+  myGLCD.setBackColor(VGA_WHITE);
+  myGLCD.print(" ---    ", 500, 240);
+#endif
+}
+
+void lcd_table_dynamic()
+{
+  while (myTouch.dataAvailable() == true)
+  {
+    int pressed_button = LCD_table_Buttons.checkButtons();
+
+    if (pressed_button == LCD_table.motorAUp) {
+      stepSomeUp(A_motor, true);
     }
-    if (pressed_button == motorBUp) {
-      myGLCD.print("B up", 500, 240);
-      stepSomeUp(Motors[B_motor].StepPin, Motors[B_motor].DirectionPin, true);
+    if (pressed_button == LCD_table.motorADown) {
+      stepSomeUp(A_motor, false);
     }
-    if (pressed_button == motorBDown) {
-      myGLCD.print("B down", 500, 240);
-      stepSomeUp(Motors[B_motor].StepPin, Motors[B_motor].DirectionPin, false);
+    if (pressed_button == LCD_table.motorBUp) {
+      stepSomeUp(B_motor, true);
     }
-    if (pressed_button == motorCUp) {
-      myGLCD.print("C up", 500, 240);
-      stepSomeUp(Motors[C_motor].StepPin, Motors[C_motor].DirectionPin, true);
+    if (pressed_button == LCD_table.motorBDown) {
+      stepSomeUp(B_motor, false);
     }
-    if (pressed_button == motorCDown) {
-      myGLCD.print("C down", 500, 240);
-      stepSomeUp(Motors[C_motor].StepPin, Motors[C_motor].DirectionPin, false);
+    if (pressed_button == LCD_table.motorCUp) {
+      stepSomeUp(C_motor, true);
     }
-    if (pressed_button == motorDUp) {
-      myGLCD.print("D up", 500, 240);
-      stepSomeUp(Motors[D_motor].StepPin, Motors[D_motor].DirectionPin, true);
+    if (pressed_button == LCD_table.motorCDown) {
+      stepSomeUp(C_motor, false);
     }
-    if (pressed_button == motorDDown) {
-      myGLCD.print("D down", 500, 240);
-      stepSomeUp(Motors[D_motor].StepPin, Motors[D_motor].DirectionPin, false);
+    if (pressed_button == LCD_table.motorDUp) {
+      stepSomeUp(D_motor, true);
     }
-    if (pressed_button == motorAllUp) {
-      myGLCD.print("All up", 500, 240);
+    if (pressed_button == LCD_table.motorDDown) {
+      stepSomeUp(D_motor, false);
+    }
+    if (pressed_button == LCD_table.motorAllUp) {
       stepAllUp(true);
     }
-    if (pressed_button == motorAllDown) {
-      myGLCD.print("All down", 500, 240);
+    if (pressed_button == LCD_table.motorAllDown) {
       stepAllUp(false);
     }
-    if (pressed_button == -1)
-      myGLCD.print("None    ", 500, 240);
+    if (pressed_button == LCD_table.gotoMain) {
+      LCD_menu = 0; // Goto main
+      lcd_main_static();
+    }
   }
 }
 
@@ -156,25 +208,32 @@ void lcd_update()
   extern bool laserUpdateLCD;
   if (!laserUpdateLCD)
     return;
-  lcd_main_dynamic();
+  switch (LCD_menu) {
+  case 0:
+    lcd_main_dynamic();
+    break;
+  case 1:
+    lcd_table_dynamic();
+    break;
+  }
 }
 
-void stepSomeUp(byte stepPin, byte dirPin, boolean up)
+int pulseWidthMicros = 10;  // microseconds
+int microsbetweenSteps = 500; // microeconds
+
+void stepSomeUp(int m, boolean up)
 {
-#if 1
-  digitalWrite(dirPin, up ? HIGH : LOW);
+  digitalWrite(Motors[m].DirectionPin, up ? HIGH : LOW);
   for (int n = 0; n < STEPS_MM; n++) {
-    digitalWrite(stepPin, HIGH);
+    digitalWrite(Motors[m].StepPin, HIGH);
     delayMicroseconds(pulseWidthMicros); // this line is probably unnecessary
-    digitalWrite(stepPin, LOW);
+    digitalWrite(Motors[m].StepPin, LOW);
     delayMicroseconds(microsbetweenSteps);
   }
-#endif
 }
 
 void stepAllUp(boolean up)
 {
-#if 1
   digitalWrite(Motors[A_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[B_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[C_motor].DirectionPin, up ? HIGH : LOW);
@@ -187,9 +246,7 @@ void stepAllUp(boolean up)
       digitalWrite(Motors[m].StepPin, LOW);
     delayMicroseconds(microsbetweenSteps);
   }
-#endif
 }
-
 
 void lcd_setstatus(const char* message, const bool persist){}
 void lcd_setstatuspgm(const char* message, const uint8_t level){}
