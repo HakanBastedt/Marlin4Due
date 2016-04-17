@@ -45,7 +45,7 @@ Here are some standard links for getting your machine calibrated:
   #define Y2_ENABLE_PIN 3
 #endif
 #ifdef Y_DUAL_ENDSTOPS
-  #define Y2_MIN_PIN    51 
+  #define Y2_MIN_PIN    3 
 #endif
 
 #define LASER
@@ -646,7 +646,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 
 // default settings
 // Microstepping 1/8 för ökad hastighet
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,100,50}  // default steps per unit for Ultimaker
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {200,200,100,50}  // default steps per unit for Ultimaker
 #define DEFAULT_MAX_FEEDRATE          {80000, 80000, 80000, 25}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {20000,20000,20000,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 

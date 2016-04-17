@@ -28,13 +28,13 @@ typedef struct Motor {
 } Motor;
 
 Motor Motors[7] = {
-  { 61,  6,  7},
-  { 60, 15, 14},
-  { 59, 17, 16},
-  { 58, 19, 18},
-  { 12, 63, 62},
-  {  9, 65, 64},
-  {  3, 67, 66}
+  { .EnablePin=61, .StepPin= 6, .DirectionPin= 7},
+  { .EnablePin=60, .StepPin=15, .DirectionPin=14},
+  { .EnablePin=59, .StepPin=17, .DirectionPin=16},
+  { .EnablePin=58, .StepPin=19, .DirectionPin=18},
+  { .EnablePin=12, .StepPin=63, .DirectionPin=62},
+  { .EnablePin= 9, .StepPin=65, .DirectionPin=64},
+  { .EnablePin= 3, .StepPin=67, .DirectionPin=66}
 };
 
 const byte X_LimPin = 49, Y1_LimPin = 50, Y2_LimPin = 51, Z_LimPin = 2;
@@ -43,8 +43,8 @@ const byte A_motor = 0, B_motor = 1, C_motor = 2, D_motor = 3, X_motor = 4, Y1_m
 const byte LaserPin = 4, Laser2Pin = 4, MosFet1Pin = 11, NosFet2Pin = 10;
 int numberOfSteps = 100;
 byte ledPin = 13;
-int pulseWidthMicros = 1;  // microseconds
-int microsbetweenSteps = 50; // microeconds
+int pulseWidthMicros = 10;  // microseconds
+int microsbetweenSteps = 500; // microeconds
 
 void lcd_main_static();
 void lcd_main_dynamic();
@@ -151,7 +151,6 @@ void lcd_main_dynamic()
   }
 }
 
-
 void lcd_update()
 {
   extern bool laserUpdateLCD;
@@ -160,11 +159,9 @@ void lcd_update()
   lcd_main_dynamic();
 }
 
-
-
 void stepSomeUp(byte stepPin, byte dirPin, boolean up)
 {
-#if 0
+#if 1
   digitalWrite(dirPin, up ? HIGH : LOW);
   for (int n = 0; n < STEPS_MM; n++) {
     digitalWrite(stepPin, HIGH);
@@ -177,7 +174,7 @@ void stepSomeUp(byte stepPin, byte dirPin, boolean up)
 
 void stepAllUp(boolean up)
 {
-#if 0
+#if 1
   digitalWrite(Motors[A_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[B_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[C_motor].DirectionPin, up ? HIGH : LOW);
