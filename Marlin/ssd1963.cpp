@@ -46,7 +46,9 @@ Motor Motors[7] = {
 struct {
   int motorAUp, motorADown, motorBUp, motorBDown, motorCUp, motorCDown, motorDUp, motorDDown;
   int motorAllUp, motorAllDown;
+  int smallStepsB, largeStepsB;
   int gotoMain;
+  bool smallSteps;
   bool buttonsDone;
 } LCD_table;
 
@@ -80,6 +82,7 @@ void lcd_init()
   LCD_table_Buttons.setTextFont(BigFont);
   LCD_table_Buttons.setSymbolFont(Dingbats1_XL);
 
+  LCD_table.smallSteps = true;
   LCD_table.buttonsDone = false;
   LCD_main.buttonsDone = false;
 
@@ -98,7 +101,7 @@ void lcd_main_static()
   const int dist = 10;
 
   if (!LCD_table.buttonsDone) {
-    LCD_main.gotoTable       = LCD_main_Buttons.addButton(dist,           dist,       bW, bH, " Motor ");
+    LCD_main.gotoTable       = LCD_main_Buttons.addButton(dW/2 - bW/2 - dist, dH - bH - dist, bW, bH, " Motor ");
     LCD_main.buttonsDone = true;
   }
   myGLCD.setColor(255, 255, 0);
@@ -144,8 +147,11 @@ void lcd_table_static()
     LCD_table.motorAllUp   = LCD_table_Buttons.addButton(dW / 2 - bW - dist / 2, dH / 2 - bH / 2, bW, bH, " All+ ");
     LCD_table.motorAllDown = LCD_table_Buttons.addButton(dW / 2 + dist / 2,      dH / 2 - bH / 2, bW, bH, " All- ");
     LCD_table.gotoMain     = LCD_table_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, " Main ");
+    LCD_table.smallStepsB  = LCD_table_Buttons.addButton(dW / 2 - dist - bW,     dH/2 + bH,       bW, bH, "Small");
+    LCD_table.largeStepsB  = LCD_table_Buttons.addButton(dW / 2 + dist,          dH/2 + bH,       bW, bH, "Large");
     LCD_table.buttonsDone = true;
   }
+  LCD_table.smallSteps = true;
   myGLCD.setColor(0, 0, 100);
   myGLCD.fillRect(0, 0, 799, 479);
   myGLCD.setBackColor(0, 0, 100);
@@ -196,6 +202,12 @@ void lcd_table_dynamic()
     if (pressed_button == LCD_table.motorAllDown) {
       stepAllUp(false);
     }
+    if (pressed_button == LCD_table.smallStepsB) {
+      LCD_table.smallSteps = true;
+    }
+    if (pressed_button == LCD_table.largeStepsB) {
+      LCD_table.smallSteps = false;
+    }
     if (pressed_button == LCD_table.gotoMain) {
       LCD_menu = 0; // Goto main
       lcd_main_static();
@@ -218,13 +230,14 @@ void lcd_update()
   }
 }
 
-int pulseWidthMicros = 10;  // microseconds
-int microsbetweenSteps = 500; // microeconds
+int pulseWidthMicros = 5;  // microseconds
+int microsbetweenSteps = 100; // microeconds
 
 void stepSomeUp(int m, boolean up)
 {
+  int pulses = STEPS_MM * (LCD_table.smallSteps? 1: 10);
   digitalWrite(Motors[m].DirectionPin, up ? HIGH : LOW);
-  for (int n = 0; n < STEPS_MM; n++) {
+  for (int n = 0; n < pulses; n++) {
     digitalWrite(Motors[m].StepPin, HIGH);
     delayMicroseconds(pulseWidthMicros); // this line is probably unnecessary
     digitalWrite(Motors[m].StepPin, LOW);
@@ -234,11 +247,12 @@ void stepSomeUp(int m, boolean up)
 
 void stepAllUp(boolean up)
 {
+  int pulses = STEPS_MM * (LCD_table.smallSteps? 1: 10);
   digitalWrite(Motors[A_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[B_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[C_motor].DirectionPin, up ? HIGH : LOW);
   digitalWrite(Motors[D_motor].DirectionPin, up ? HIGH : LOW);
-  for (int n = 0; n < STEPS_MM; n++) {
+  for (int n = 0; n < pulses; n++) {
     for (uint8_t m = A_motor; m <= D_motor; m++)
       digitalWrite(Motors[m].StepPin, HIGH);
     delayMicroseconds(pulseWidthMicros); // this line is probably unnecessary

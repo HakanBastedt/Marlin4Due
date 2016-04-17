@@ -679,6 +679,13 @@ void setup()
   setup_filrunoutpin();
   setup_powerhold();
 
+#if defined(MOSFET1_PIN)
+  pinMode(MOSFET1_PIN, OUTPUT);
+  digitalWrite(MOSFET1_PIN, LOW);
+  pinMode(MOSFET2_PIN, OUTPUT);
+  digitalWrite(MOSFET2_PIN, LOW);
+#endif
+
 #if HAS_STEPPER_RESET
   disableStepperDrivers();
 #endif
@@ -5385,7 +5392,24 @@ inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignmen
   }
 }
 
-
+inline void gcode_M652()  // Turn airassist on
+{
+  uint8_t airon = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255;
+  digitalWrite(MOSFET1_PIN, airon);
+}
+inline void gcode_M653()  // Turn off airassist
+{
+  digitalWrite(MOSFET1_PIN, LOW);
+}
+inline void gcode_M654()  // Turn cooler fan on
+{
+  uint8_t coolon = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255;
+  digitalWrite(MOSFET2_PIN, coolon);
+}
+inline void gcode_M655()  // Turn off airassist
+{
+  digitalWrite(MOSFET2_PIN, LOW);
+}
 #endif // LASER
 
 /**
@@ -6141,6 +6165,18 @@ void process_next_command() {
       break;
     case 651:
       gcode_M651();
+      break;
+    case 652:
+      gcode_M652();
+      break;
+    case 653:
+      gcode_M653();
+      break;
+    case 654:
+      gcode_M654();
+      break;
+    case 655:
+      gcode_M655();
       break;
 #endif
 

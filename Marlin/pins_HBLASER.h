@@ -33,6 +33,10 @@
 #define D_STEP_PIN         19
 #define D_DIR_PIN          18
 
+#define MOSFET1_PIN        11
+#define MOSFET2_PIN        10
+
+
 #define Z_STEP_PIN         UNUSED_PIN // MUST
 #define Z_DIR_PIN          UNUSED_PIN // MUST
 #define Z_ENABLE_PIN       UNUSED_PIN // MUST
