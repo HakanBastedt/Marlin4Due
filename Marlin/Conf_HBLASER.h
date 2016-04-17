@@ -56,7 +56,7 @@ Here are some standard links for getting your machine calibrated:
 
 #define LASER_CONTROL 1
 //#define LASER_POWER_DOWN
-#define LASER_INTENSITY_PIN 5 // S2
+#define LASER_INTENSITY_PIN 4 
 //#define LASER_FIRING_PIN    7 // S1
 //#define LASER_POWER_PIN     -1 // 
 #define LASER_LOW_PWM

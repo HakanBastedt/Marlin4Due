@@ -63,13 +63,13 @@
 
 #define KILL_PIN           -1 //Dawson
 
-#define LASER_0_PIN         4
-#define LASER_1_PIN         5
+//#define LASER_0_PIN         4
+//#define LASER_1_PIN         5
 
 #define HEATER_BED_PIN     -1    // BED //Dawson - OTW, not on the right power feed!
 
-#define HEATER_0_PIN       11 // MOSFET 1, Park them here
-#define HEATER_1_PIN       10 // MOSFET 2
+#define HEATER_0_PIN       UNUSED_PIN // MUST HAVE
+#define HEATER_1_PIN       -1 
 #define HEATER_2_PIN       -1 // Dawson - use this for stepper fan control
 
 #define TEMP_BED_PIN       -1   // ANALOG NUMBERING
