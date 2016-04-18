@@ -5399,6 +5399,7 @@ inline void gcode_M652()  // Turn airassist on
 }
 inline void gcode_M653()  // Turn off airassist
 {
+  st_synchronize();
   digitalWrite(MOSFET1_PIN, LOW);
 }
 inline void gcode_M654()  // Turn cooler fan on
@@ -5408,6 +5409,7 @@ inline void gcode_M654()  // Turn cooler fan on
 }
 inline void gcode_M655()  // Turn off airassist
 {
+  st_synchronize();
   digitalWrite(MOSFET2_PIN, LOW);
 }
 #endif // LASER
