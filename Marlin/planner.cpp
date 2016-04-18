@@ -746,27 +746,9 @@ float junction_deviation = 0.1;
   if (laser.mode == RASTER || laser.mode == PULSED) {
     block->steps_l_1000 = labs(1000*block->millimeters*laser.ppm);
     for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
-
-      //Scale the image intensity based on the raster power.
-      //100% power on a pixel basis is 255, convert back to 255 = 100.
-      
-      //http://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
-      int OldRange, NewRange;
-      float NewValue;
-      OldRange = (255 - 0);
-#define SEVEN 6
-      NewRange = (laser.rasterlaserpower*255.0/100.0 - SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
-      NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / OldRange) + SEVEN);
-      
-      //If less than 7%, turn off the laser tube.
-      if(NewValue <= SEVEN) 
-	NewValue = 0;
-      
-      //      SERIAL_ECHOPAIR(" ", NewValue);
-      //      if ((i+1)%10 == 0)
-      //        SERIAL_ECHOLN(" ");
-      block->laser_raster_data[i] = NewValue; 
+      block->laser_raster_data[i] = laser.raster_data[i];
     }
+    block->laser_raster_intensity = laser.rasterlaserpower/255.0;
   } else {
     block->steps_l_1000 = 0;
   }

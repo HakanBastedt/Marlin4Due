@@ -353,6 +353,7 @@ void stopAdcFreerun(adc_channel_num_t chan)
 
 #ifdef LASER
 
+#include "laser.h"
 static void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v)
 {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
@@ -365,16 +366,14 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 
 static uint32_t chA, chNo;
 static Tc *chTC;
-static uint32_t TC_const;
+static uint32_t TC;
 
 void laser_init_pwm(uint8_t ulPin, uint16_t ulFreq) 
 {
   uint32_t attr = g_APinDescription[ulPin].ulPinAttribute;
   if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
     // We use MCLK/2 as clock.
-    const uint32_t TC = VARIANT_MCK / 2 / ulFreq;
-    TC_const = TC/TC_MAX_DUTY_CYCLE;
-
+    TC = VARIANT_MCK / 2 / ulFreq;
     // Setup Timer for this pin
     ETCChannel channel = g_APinDescription[ulPin].ulTCChannel;
     static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
@@ -411,8 +410,9 @@ void laser_init_pwm(uint8_t ulPin, uint16_t ulFreq)
   }
 }
 
-void laser_intensity(uint8_t intensity) {
-  uint32_t ulValue = intensity * TC_const;
+void laser_intensity(uint16_t intensity) {
+  uint32_t ulValue = (intensity * TC) / LASER_PWM_MAX_DUTY_CYCLE;
+
   if (ulValue == 0) {
     if (chA)
       TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);

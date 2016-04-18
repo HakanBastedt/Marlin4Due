@@ -758,8 +758,8 @@ HAL_STEP_TIMER_ISR {
           }
       #ifdef LASER_RASTER
 	  if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-	    uint8_t v = current_block->laser_raster_data[counter_raster];
-            laser_fire_byte(v); // Full byte range 0-255
+    float v = current_block->laser_raster_data[counter_raster] * current_block->laser_raster_intensity;
+            laser_fire(v); // Range 0 - 100.0
 
             if (laser.diagnostics) {
 	      SERIAL_ECHOPAIR("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);

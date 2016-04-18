@@ -63,7 +63,6 @@ laser_init_pwm() and laser_intensity() are in HAL.h
 
 void laser_init();
 void laser_fire(float intensity);
-void laser_fire_byte(uint8_t intensity);
 void laser_extinguish();
 void laser_update_lifetime();
 void laser_set_mode(int mode);
@@ -91,7 +90,8 @@ void laser_diagnose();
 #define PULSED 1
 #define RASTER 2
 
-// For PWM
-#define LASER_PWM_MAX_DUTY_CYCLE 255
+// 2048 is max at 20 kHz (42 MHz / 20 kHz = 2100 : 2048 is ok)
+// Higher *can* be used, but will be mapped to 2100.
+#define LASER_PWM_MAX_DUTY_CYCLE 2048
 #endif // LASER_H
 #endif

@@ -300,7 +300,7 @@ static uint8_t target_extruder;
 bool no_wait_for_cooling = true;
 bool target_direction;
 #ifdef LASER
-bool laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
+bool laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
 #endif
 
 #ifdef ENABLE_AUTO_BED_LEVELING
@@ -877,7 +877,7 @@ void get_command() {
 #endif
 
     serial_char = MYSERIAL.read();
-    SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
+    //    SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
 
     //
     // If the character ends the line, or the line is full...
@@ -5353,16 +5353,16 @@ inline void gcode_M649() // M649 set laser options
   }
 }
 
-inline void gcode_M650() // M650 Don't update the LCD P0 = update(default) P1 = don't update
+inline void gcode_M650() // M650 Don't update the LCD P1 = update P0 = don't update
 {
   if (code_seen('P')) {
     int val = code_value();
     switch (val) {
-      case 0:
+      case 1:
 	laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
 	return;
 	break;
-      case 1:
+      case 0:
 	laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
 	return;
 	break;
@@ -5370,7 +5370,7 @@ inline void gcode_M650() // M650 Don't update the LCD P0 = update(default) P1 = 
   }
   SERIAL_ECHO_START;
   SERIAL_ECHO("LCD Update setting: ");
-  SERIAL_ECHOLN(laserUpdateLCD == 0 ? "ON" : "OFF");
+  SERIAL_ECHOLN(laserUpdateLCD ? "ON" : "OFF");
 }
 
 inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignment etc
