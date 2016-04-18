@@ -114,6 +114,10 @@ void lcd_main_static()
 
 void lcd_main_dynamic()
 {
+  static uint8_t count = 0;
+  if (count++ < 10)
+    return;
+  count=0;
   float x = current_position[X_AXIS];
   float y = current_position[Y_AXIS];
   myGLCD.printNumF(x, 2, 50+(x<10.0 ? 80 : (x < 100.0 ? 40: 0)), 100);

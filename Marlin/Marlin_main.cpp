@@ -300,7 +300,7 @@ static uint8_t target_extruder;
 bool no_wait_for_cooling = true;
 bool target_direction;
 #ifdef LASER
-bool laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
+bool laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
 #endif
 
 #ifdef ENABLE_AUTO_BED_LEVELING
