@@ -15,8 +15,9 @@ extern uint8_t Dingbats1_XL[];
 
 UTFT          myGLCD(20, 42, 41, 39, 38);
 UTouch        myTouch(43, 44, 45, 46, 47);
-UTFT_Buttons  LCD_table_Buttons(&myGLCD, &myTouch);
 UTFT_Buttons  LCD_main_Buttons(&myGLCD, &myTouch);
+UTFT_Buttons  LCD_table_Buttons(&myGLCD, &myTouch);
+UTFT_Buttons  LCD_align_Buttons(&myGLCD, &myTouch);
 
 #define STEPS_REV    200
 #define MICROSTEPPING 32
@@ -38,9 +39,11 @@ Motor Motors[7] = {
   { .EnablePin=Y_ENABLE_PIN,  .StepPin=Y_STEP_PIN,  .DirectionPin=Y_DIR_PIN},
   { .EnablePin=Y2_ENABLE_PIN, .StepPin=Y2_STEP_PIN, .DirectionPin=Y2_DIR_PIN}
 };
- struct {
-   int gotoTable;
-   bool buttonsDone;
+struct {
+  int homeAxis;
+  int gotoTable;
+  int gotoAlign;
+  bool buttonsDone;
 } LCD_main;
 
 struct {
@@ -52,15 +55,23 @@ struct {
   bool buttonsDone;
 } LCD_table;
 
+struct {
+  int corner1, corner2, corner3, corner4, Fire; 
+  int gotoMain;
+  bool buttonsDone;
+} LCD_align;
+
 const byte X_LimPin = X_MAX_PIN, Y1_LimPin = Y_MIN_PIN, Y2_LimPin = Y2_MIN_PIN;
 const byte A_motor = 0, B_motor = 1, C_motor = 2, D_motor = 3, X_motor = 4, Y1_motor = 5, Y2_motor = 6;
 
 const byte LaserPin = 4, Laser2Pin = 4, MosFet1Pin = 11, NosFet2Pin = 10;
 
-void lcd_main_static();
+byte lcd_main_static();
 void lcd_main_dynamic();
-void lcd_table_static();
+byte lcd_table_static();
 void lcd_table_dynamic();
+byte lcd_align_static();
+void lcd_align_dynamic();
 
 void lcd_init() 
 {
@@ -82,9 +93,13 @@ void lcd_init()
   LCD_table_Buttons.setTextFont(BigFont);
   LCD_table_Buttons.setSymbolFont(Dingbats1_XL);
 
+  LCD_align_Buttons.setTextFont(BigFont);
+  LCD_align_Buttons.setSymbolFont(Dingbats1_XL);
+
   LCD_table.smallSteps = true;
   LCD_table.buttonsDone = false;
   LCD_main.buttonsDone = false;
+  LCD_align.buttonsDone = false;
 
   lcd_main_static();
 }
@@ -94,23 +109,27 @@ void stepAllUp(boolean up);
 
 int LCD_menu = 0; // Start at main
 
-void lcd_main_static()
+byte lcd_main_static()
 {
   const int bW = 100, dW = 800;
   const int bH = 80, dH = 480;
   const int dist = 10;
 
-  if (!LCD_table.buttonsDone) {
-    LCD_main.gotoTable       = LCD_main_Buttons.addButton(dW/2 - bW/2 - dist, dH - bH - dist, bW, bH, " Motor ");
+  if (!LCD_main.buttonsDone) {
+    LCD_main.homeAxis  = LCD_main_Buttons.addButton(dW - (dist + bW),           dist, bW, bH, "HomeA");
+    LCD_main.gotoTable = LCD_main_Buttons.addButton(dW/2 - bW - dist, dH - bH - dist, bW, bH, "Table");
+    LCD_main.gotoAlign = LCD_main_Buttons.addButton(dW/2 + dist,      dH - bH - dist, bW, bH, "Align");
     LCD_main.buttonsDone = true;
   }
-  myGLCD.setColor(255, 255, 0);
+  myGLCD.setColor(200, 200, 200);
   myGLCD.fillRect(0, 0, 799, 479);
-  myGLCD.setBackColor(255, 255, 0);
-  myGLCD.setColor(100, 100, 100);
+  myGLCD.setBackColor(200, 200, 200);
+  myGLCD.setColor(50, 50, 50);
   myGLCD.setFont(SixteenSegment40x60);
   LCD_main_Buttons.drawButtons(); 
+  return 0;
 }
+
 
 void lcd_main_dynamic()
 {
@@ -126,14 +145,19 @@ void lcd_main_dynamic()
   {
     int pressed_button = LCD_main_Buttons.checkButtons();
 
+    if (pressed_button == LCD_main.homeAxis) {
+      enqueuecommands_P(PSTR("G28"));      
+    }
     if (pressed_button == LCD_main.gotoTable) {
-      LCD_menu = 1; // Goto table
-      lcd_table_static();
+      LCD_menu = lcd_table_static();
+    }
+    if (pressed_button == LCD_main.gotoAlign) {
+      LCD_menu = lcd_align_static();
     }
   }
 }
 
-void lcd_table_static()
+byte lcd_table_static()
 {
   const int bW = 100, dW = 800;
   const int bH = 80, dH = 480;
@@ -151,8 +175,8 @@ void lcd_table_static()
     LCD_table.motorAllUp   = LCD_table_Buttons.addButton(dW / 2 - bW - dist / 2, dH / 2 - bH / 2, bW, bH, " All+ ");
     LCD_table.motorAllDown = LCD_table_Buttons.addButton(dW / 2 + dist / 2,      dH / 2 - bH / 2, bW, bH, " All- ");
     LCD_table.gotoMain     = LCD_table_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, " Main ");
-    LCD_table.smallStepsB  = LCD_table_Buttons.addButton(dW / 2 - dist - bW,     dH/2 + bH,       bW, bH, "Small");
-    LCD_table.largeStepsB  = LCD_table_Buttons.addButton(dW / 2 + dist,          dH/2 + bH,       bW, bH, "Large");
+    LCD_table.smallStepsB  = LCD_table_Buttons.addButton(dW / 2 - dist - bW,     dH/2 +bH/2+dist, bW, bH, "Small");
+    LCD_table.largeStepsB  = LCD_table_Buttons.addButton(dW / 2 + dist,          dH/2 +bH/2+dist, bW, bH, "Large");
     LCD_table.buttonsDone = true;
   }
   LCD_table.smallSteps = true;
@@ -162,6 +186,7 @@ void lcd_table_static()
   myGLCD.setColor(255, 255, 0);
   LCD_table_Buttons.drawButtons();
   
+  return 1;
 #if 0
   myGLCD.print("You pressed:", 400, 200);
   myGLCD.setColor(VGA_BLACK);
@@ -213,8 +238,58 @@ void lcd_table_dynamic()
       LCD_table.smallSteps = false;
     }
     if (pressed_button == LCD_table.gotoMain) {
-      LCD_menu = 0; // Goto main
-      lcd_main_static();
+      LCD_menu = lcd_main_static();
+    }
+  }
+}
+
+
+byte lcd_align_static()
+{
+  const int bW = 100, dW = 800;
+  const int bH = 80, dH = 480;
+  const int dist = 10;
+  if (!LCD_align.buttonsDone) {
+    LCD_align.gotoMain = LCD_align_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, " Main ");
+    LCD_align.corner1  = LCD_align_Buttons.addButton(dist,                     dH - dist - bH,  bW, bH, "Go here");
+    LCD_align.corner2  = LCD_align_Buttons.addButton(dist,                     dist,            bW, bH, "Go here");
+    LCD_align.corner3  = LCD_align_Buttons.addButton(dW - 2 * (dist + bW),     dist,            bW, bH, "Go here");
+    LCD_align.corner4  = LCD_align_Buttons.addButton(dW - 2 * (dist + bW),     dH - dist - bH,  bW, bH, "Go here");
+    LCD_align.Fire     = LCD_align_Buttons.addButton(dW / 2 - bW/2 - dist / 2, dH / 2 - bH / 2, bW, bH, "Fire!");
+    LCD_align.buttonsDone = true;
+  }
+  myGLCD.setColor(0, 100, 0);
+  myGLCD.fillRect(0, 0, 799, 479);
+  myGLCD.setBackColor(0, 100, 0);
+  myGLCD.setColor(255, 0, 255);
+  LCD_align_Buttons.drawButtons();  
+  return 2;
+}
+
+
+void lcd_align_dynamic()
+{
+  while (myTouch.dataAvailable() == true)
+  {
+    int pressed_button = LCD_align_Buttons.checkButtons();
+
+    if (pressed_button == LCD_align.gotoMain) {
+      LCD_menu = lcd_main_static();
+    }
+    if (pressed_button == LCD_align.corner1) {
+      enqueuecommands_P(PSTR("G0 X0 Y0 F10000"));
+    }
+    if (pressed_button == LCD_align.corner2) {
+      enqueuecommands_P(PSTR("G0 X0 Y550 F10000"));
+    }
+    if (pressed_button == LCD_align.corner3) {
+      enqueuecommands_P(PSTR("G0 X600 Y550 F10000"));
+    }
+    if (pressed_button == LCD_align.corner4) {
+      enqueuecommands_P(PSTR("G0 X600 Y0 F10000"));
+    }
+    if (pressed_button == LCD_align.Fire) {
+      enqueuecommands_P(PSTR("M651"));
     }
   }
 }
@@ -230,6 +305,9 @@ void lcd_update()
     break;
   case 1:
     lcd_table_dynamic();
+    break;
+  case 2:
+    lcd_align_dynamic();
     break;
   }
 }
