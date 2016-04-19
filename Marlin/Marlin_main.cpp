@@ -5376,7 +5376,7 @@ inline void gcode_M650() // M650 Don't update the LCD P1 = update P0 = don't upd
 inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignment etc
 {
   float m651_intensity = 100;
-  unsigned long m651_duration = 1;
+  unsigned long m651_duration = 10;
   if (code_seen('S') && !IsStopped()) 
     m651_intensity = (float) code_value();
   if (code_seen('L') && !IsStopped()) // Milliseconds
