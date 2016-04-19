@@ -179,8 +179,8 @@ byte lcd_table_static()
     LCD_table.motorDDown   = LCD_table_Buttons.addButton(dW - dist - bW,         dH - dist - bH,  bW, bH, " D- ");
     LCD_table.motorAllUp   = LCD_table_Buttons.addButton(dW / 2 - bW - dist / 2, dH / 2 - bH / 2, bW, bH, " All+ ");
     LCD_table.motorAllDown = LCD_table_Buttons.addButton(dW / 2 + dist / 2,      dH / 2 - bH / 2, bW, bH, " All- ");
-    LCD_table.midPoint     = LCD_table_Buttons.addButton(dW / 2 - (bW+dist) / 2, dH / 2 - 3*bH/2, bW, bH, " All+ ");
-    LCD_table.gotoMain     = LCD_table_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, "MidP");
+    LCD_table.midPoint     = LCD_table_Buttons.addButton(dW / 2 - (bW+dist) / 2, dH / 2 - 3*bH/2, bW, bH, "MidP");
+    LCD_table.gotoMain     = LCD_table_Buttons.addButton(dW / 2 - dist - bW/2,   dH - dist - bH,  bW, bH, "Main");
     LCD_table.microStepsB  = LCD_table_Buttons.addButton(dW / 2 - 2*(dist + bW), dH/2 +bH/2+dist, bW, bH, "Micro");
     LCD_table.smallStepsB  = LCD_table_Buttons.addButton(dW / 2 - dist - bW,     dH/2 +bH/2+dist, bW, bH, "Small");
     LCD_table.largeStepsB  = LCD_table_Buttons.addButton(dW / 2 + dist,          dH/2 +bH/2+dist, bW, bH, "Large");
