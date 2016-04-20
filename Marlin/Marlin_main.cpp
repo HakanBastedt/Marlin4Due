@@ -5341,6 +5341,7 @@ inline void gcode_M649() // M649 set laser options
   if (code_seen('S') && !IsStopped()) {
     laser.intensity = (float) code_value();
     laser.rasterlaserpower =  laser.intensity;
+    SERIAL_ECHOLN(laser.intensity);
   }
   if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
   if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
