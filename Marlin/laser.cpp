@@ -29,7 +29,7 @@ laser_t laser;
 
 void laser_init()
 {
-  laser_init_pwm(LASER_INTENSITY_PIN, LASER_PWM_FREQUENCY);
+  laser_init_pwm(LASER_INTENSITY_PIN);
 
 #ifdef LASER_PERIPHERALS
   digitalWrite(LASER_PERIPHERALS_PIN, HIGH);  // Laser peripherals are active LOW, so preset the pin

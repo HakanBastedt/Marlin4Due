@@ -748,7 +748,10 @@ float junction_deviation = 0.1;
     for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
       block->laser_raster_data[i] = laser.raster_data[i];
     }
-    block->laser_raster_intensity = laser.rasterlaserpower/255.0;
+#define NewRange (100.0-LASER_SEVEN)
+#define OldRange 100.0
+    static const float Factor = 0.01/255.0*NewRange/OldRange*TC;
+    block->laser_raster_intensity_factor = laser.rasterlaserpower * Factor;
   } else {
     block->steps_l_1000 = 0;
   }

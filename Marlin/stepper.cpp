@@ -758,15 +758,15 @@ HAL_STEP_TIMER_ISR {
           }
       #ifdef LASER_RASTER
 	  if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-    float v = current_block->laser_raster_data[counter_raster] * current_block->laser_raster_intensity;
-            laser_fire(v); // Range 0 - 100.0
+	    static const uint32_t Seven_factor = LASER_SEVEN*0.01*TC;
+	    laser.firing = LASER_ON;
+	    laser.last_firing = micros(); // microseconds of last laser firing
 
-#if 0
-#define SEVEN 3.5
-	    static const uint32 A = SEVEN*0.01*TC;
-	    uint32 ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + A;
-	    laser_fire_bits(ulValue);
-#endif
+	    uint32_t ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
+	    laser_intensity_bits(ulValue);
+            #if LASER_CONTROL == 2
+	    digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+            #endif
             if (laser.diagnostics) {
 	      SERIAL_ECHOPAIR("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
 	    }

@@ -147,26 +147,12 @@ uint16_t getAdcFreerun(adc_channel_num_t chan, bool wait_for_conversion = false)
 uint16_t getAdcSuperSample(adc_channel_num_t chan);
 void stopAdcFreerun(adc_channel_num_t chan);
 
-void laser_init_pwm(uint8_t pin, uint16_t freq);
+void laser_init_pwm(uint8_t pin);
 void laser_intensity(uint16_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
-#if 0
-inline void laser_intensity_bits(uint32 ulValue) {
-  if (ulValue == 0) {
-    if (chA)
-      TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
-    else
-      TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-  } else {
-    if (chA) {
-      TC_SetRA(chTC, chNo, ulValue);
-      TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-    } else {
-      TC_SetRB(chTC, chNo, ulValue);
-      TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
-    }
-  }
-}
-#endif
+// We use MCLK/2 as clock.
+#define TC (VARIANT_MCK / 2 / LASER_PWM_FREQUENCY)
+
+inline void laser_intensity_bits(uint32_t ulValue);
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------

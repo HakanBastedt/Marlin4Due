@@ -59,8 +59,8 @@ Here are some standard links for getting your machine calibrated:
 #define LASER_INTENSITY_PIN 4 
 //#define LASER_FIRING_PIN    7 // S1
 //#define LASER_POWER_PIN     -1 // 
-#define LASER_LOW_PWM
 // LASER_AIR 8
+#define LASER_SEVEN 3.5
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 //#define HIGH_TO_FIRE
@@ -114,7 +114,7 @@ Here are some standard links for getting your machine calibrated:
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 115200
+#define BAUDRATE 250000
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices

@@ -5360,11 +5360,9 @@ inline void gcode_M650() // M650 Don't update the LCD P1 = update P0 = don't upd
     switch (val) {
       case 1:
 	laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
-	return;
 	break;
       case 0:
 	laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
-	return;
 	break;
       }
   }
