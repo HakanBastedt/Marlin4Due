@@ -149,6 +149,24 @@ void stopAdcFreerun(adc_channel_num_t chan);
 
 void laser_init_pwm(uint8_t pin, uint16_t freq);
 void laser_intensity(uint16_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
+#if 0
+inline void laser_intensity_bits(uint32 ulValue) {
+  if (ulValue == 0) {
+    if (chA)
+      TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+    else
+      TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+  } else {
+    if (chA) {
+      TC_SetRA(chTC, chNo, ulValue);
+      TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+    } else {
+      TC_SetRB(chTC, chNo, ulValue);
+      TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
+    }
+  }
+}
+#endif
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------

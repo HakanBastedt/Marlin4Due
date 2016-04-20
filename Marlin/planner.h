@@ -77,6 +77,9 @@ typedef struct {
     #ifdef LASER_RASTER
       unsigned char laser_raster_data[LASER_MAX_RASTER_LINE]; 
       float laser_raster_intensity;
+    #if 0
+      uint32 laser_raster_intensity_factor;
+    #endif
     #endif // LASER_RASTER
   #endif // LASER
   volatile char busy;

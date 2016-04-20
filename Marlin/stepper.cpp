@@ -761,6 +761,12 @@ HAL_STEP_TIMER_ISR {
     float v = current_block->laser_raster_data[counter_raster] * current_block->laser_raster_intensity;
             laser_fire(v); // Range 0 - 100.0
 
+#if 0
+#define SEVEN 3.5
+	    static const uint32 A = SEVEN*0.01*TC;
+	    uint32 ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + A;
+	    laser_fire_bits(ulValue);
+#endif
             if (laser.diagnostics) {
 	      SERIAL_ECHOPAIR("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
 	    }
