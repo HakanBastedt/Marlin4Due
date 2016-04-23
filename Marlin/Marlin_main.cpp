@@ -2157,12 +2157,15 @@ inline void gcode_G10_G11(bool doRetract=false) {
 #ifdef LASER_RASTER
 inline void gcode_G7() 
 {
-  if (code_seen('L')) 
-    laser.raster_raw_length = int(code_value());
   if (code_seen('$')) {
     laser.raster_direction = (bool)code_value();
     destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+    laser.mode = CONTINUOUS;
+    laser.status = LASER_OFF;
+    prepare_move(); // Do a separate step for Y movement
   }
+  if (code_seen('L')) 
+    laser.raster_raw_length = int(code_value());
   if (code_seen('D')) 
     laser.raster_num_pixels = base64_decode(laser.raster_data, seen_pointer+1, laser.raster_raw_length);
   if (!laser.raster_direction) {
