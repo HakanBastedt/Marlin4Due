@@ -663,9 +663,13 @@ HAL_STEP_TIMER_ISR {
         }
       #endif
       #ifdef LASER_RASTER
+	extern bool LCD_doingRaster;
         if (current_block->laser_mode == RASTER) {
           counter_raster = 0;
-        }
+	  LCD_doingRaster = true;
+        } else
+	  LCD_doingRaster = false;
+
       #endif // LASER_RASTER
 
       // #ifdef ADVANCE

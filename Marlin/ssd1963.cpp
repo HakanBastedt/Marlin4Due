@@ -71,6 +71,7 @@ const byte X_LimPin = X_MAX_PIN, Y1_LimPin = Y_MIN_PIN, Y2_LimPin = Y2_MIN_PIN;
 const byte A_motor = 0, B_motor = 1, C_motor = 2, D_motor = 3, X_motor = 4, Y1_motor = 5, Y2_motor = 6;
 
 const byte LaserPin = 4, Laser2Pin = 4, MosFet1Pin = 11, NosFet2Pin = 10;
+bool LCD_doingRaster = false;
 
 byte lcd_main_static();
 void lcd_main_dynamic();
@@ -459,7 +460,7 @@ void lcd_align_dynamic()
 void lcd_update()
 {
   extern bool laserUpdateLCD;
-  if (!laserUpdateLCD)
+  if (!laserUpdateLCD || LCD_doingRaster)
     return;
   switch (LCD_menu) {
   case 0:
