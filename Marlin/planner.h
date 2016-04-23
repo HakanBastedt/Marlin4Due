@@ -72,7 +72,7 @@ typedef struct {
     bool laser_status; // LASER_OFF, LASER_ON
     float laser_ppm; // pulses per millimeter, for pulsed and raster firing modes
     unsigned long laser_duration; // laser firing duration in microseconds, for pulsed and raster firing modes
-    long steps_l_1000; // step count in 1/1000s between firings of the laser, for pulsed firing mode
+    long steps_l; // Count steps between laser sh
     int laser_intensity; // Laser firing instensity in clock cycles for the PWM timer
     #ifdef LASER_RASTER
       unsigned char laser_raster_data[LASER_MAX_RASTER_LINE]; 

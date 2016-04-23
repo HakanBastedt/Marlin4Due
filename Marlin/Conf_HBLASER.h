@@ -61,6 +61,7 @@ Here are some standard links for getting your machine calibrated:
 //#define LASER_POWER_PIN     -1 // 
 // LASER_AIR 8
 #define LASER_SEVEN 3.5
+#define LASER_BED_Z_PIN 58 // A4 pin
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 //#define HIGH_TO_FIRE
@@ -88,7 +89,7 @@ Here are some standard links for getting your machine calibrated:
 //#define CUSTOM_MENDEL_NAME "Laser Cutter"
 #define LASER_WATTS 40.0
 #define LASER_DIAMETER 0.1 // milimeters
-#define LASER_PWM_FREQUENCY 2000 // hertz
+#define LASER_PWM_FREQUENCY 20000 // hertz
 #define LASER_FOCAL_HEIGHT 50.80 // z axis position at which the laser is focused
 
 #define HB_SSD1963
