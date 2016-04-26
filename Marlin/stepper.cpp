@@ -620,14 +620,6 @@ HAL_STEP_TIMER_ISR {
   stepperChannel->TC_SR;
   //stepperChannel->TC_RC = 1000000;
 
-  #ifdef LASER
-  if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
-    if (laser.diagnostics) 
-      SERIAL_ECHOLN("Laser firing duration elapsed, in interrupt handler");
-    laser_extinguish();
-  }
-  #endif LASER
-
   if (cleaning_buffer_counter)
   {
     current_block = NULL;
@@ -687,11 +679,13 @@ HAL_STEP_TIMER_ISR {
       if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
         laser_fire(current_block->laser_intensity);
       }
+#ifdef LASER_NOO
       if (current_block->laser_status == LASER_OFF) {
         if (laser.diagnostics)
 	  SERIAL_ECHOLN("Laser status set to off, in interrupt handler");
         laser_extinguish();
       }
+#endif
     #endif // LASER
 
 	// Update endstops state, if enabled
@@ -761,11 +755,8 @@ HAL_STEP_TIMER_ISR {
       #ifdef LASER_RASTER
 	  if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
 	    static const uint32_t Seven_factor = LASER_SEVEN*0.01*TC;
-	    laser.firing = LASER_ON;
-	    laser.last_firing = micros(); // microseconds of last laser firing
-
 	    uint32_t ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
-	    laser_intensity_bits(ulValue);
+	    laser_pulse(ulValue, current_block->laser_duration);
              #if LASER_CONTROL == 2
 	    digitalWrite(LASER_FIRING_PIN, LASER_ARM);
             #endif
@@ -776,10 +767,6 @@ HAL_STEP_TIMER_ISR {
 	  }
       #endif // LASER_RASTER
 		  counter_l -= current_block->step_event_count;
-		  }
-		  if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
-			if (laser.diagnostics) SERIAL_ECHOLN("Laser firing duration elapsed, in interrupt fast loop");
-		    laser_extinguish();
 		  }
       #endif // LASER
 

@@ -20,6 +20,7 @@
 #include "Configuration.h"
 #ifdef LASER
 #include "laser.h"
+#include "HAL.h"
 #include "pins.h"
 #include <avr/interrupt.h>
 #include <Arduino.h>
@@ -30,6 +31,7 @@ laser_t laser;
 void laser_init()
 {
   laser_init_pwm(LASER_INTENSITY_PIN);
+  laserext_timer_start();
 
 #ifdef LASER_PERIPHERALS
   digitalWrite(LASER_PERIPHERALS_PIN, HIGH);  // Laser peripherals are active LOW, so preset the pin
@@ -49,7 +51,6 @@ void laser_init()
   laser.ppm = 0.0;
   laser.duration = 0;
   laser.status = LASER_OFF;
-  laser.firing = LASER_OFF;
   laser.mode = CONTINUOUS;
   laser.last_firing = 0;
   laser.diagnostics = false;
@@ -70,8 +71,7 @@ void laser_init()
 
 void laser_fire(float intensity = 100.0) // Fire with range 0-100
 { 
-  laser.firing = LASER_ON;
-  laser.last_firing = micros(); // microseconds of last laser firing
+/////  laser.last_firing = micros(); // microseconds of last laser firing
   if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
   if (intensity < 0) intensity = 0;
   
@@ -96,25 +96,23 @@ void laser_fire(float intensity = 100.0) // Fire with range 0-100
 }
 
 void laser_extinguish(){
-  if (laser.firing == LASER_ON) {
-    laser.firing = LASER_OFF;
-    if (laser.diagnostics) {
-      SERIAL_ECHOLN("Laser being extinguished");
-    }
-
-    laser_intensity(0);
-
+  if (laser.diagnostics) {
+    SERIAL_ECHOLN("Laser being extinguished");
+  }
+  
+  laser_intensity(0);
+  
 #if LASER_CONTROL == 2
-    digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
+  digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
 #endif
-
-    laser.time += millis() - (laser.last_firing / 1000);
-    
-    if (laser.diagnostics) {
-      SERIAL_ECHOLN("Laser extinguished");
-    }
+  
+  laser.time += millis() - (laser.last_firing / 1000);
+  
+  if (laser.diagnostics) {
+    SERIAL_ECHOLN("Laser extinguished");
   }
 }
+
 void laser_set_mode(int mode){
   switch(mode){
   case 0:

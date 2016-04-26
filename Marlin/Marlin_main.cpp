@@ -5412,6 +5412,11 @@ inline void gcode_M655()  // Turn off airassist
   st_synchronize();
   digitalWrite(MOSFET2_PIN, LOW);
 }
+inline void gcode_M656()  // short debug puls
+{
+  st_synchronize();
+  laser_pulse(100, 1000); // 1 ms
+}
 #endif // LASER
 
 /**
@@ -6179,6 +6184,9 @@ void process_next_command() {
       break;
     case 655:
       gcode_M655();
+      break;
+    case 656:
+      gcode_M656();
       break;
 #endif
 

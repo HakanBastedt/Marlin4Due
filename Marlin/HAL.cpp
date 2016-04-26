@@ -431,6 +431,44 @@ void laser_intensity(uint16_t intensity)
   
   laser_intensity_bits(ulValue);
 }
+Tc *laserext_tc = LASEREXT_TIMER_COUNTER;
+uint32_t laserext_channel = LASEREXT_TIMER_CHANNEL;
+
+void laserext_timer_start() {
+  pmc_set_writeprotect(false); //remove write protection on registers
+  
+  // Timer for extinguishing the laser
+
+  IRQn_Type irq = LASEREXT_TIMER_IRQN;
+  
+  pmc_enable_periph_clk((uint32_t)irq); //we need a clock?
+  
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS;
+  
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CMR =  TC_CMR_CPCDIS | TC_CMR_WAVSEL_UP_RC | TC_CMR_WAVE | TC_CMR_TCCLKS_TIMER_CLOCK1;
+
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_IER /*|*/= TC_IER_CPCS; //enable interrupt on timer match with register C
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_IDR = ~TC_IER_CPCS;
+  
+  NVIC_EnableIRQ(irq); //enable Nested Vector Interrupt Controller
+}
+
+HAL_LASEREXT_TIMER_ISR
+{
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Stop
+  laser_intensity_bits(0); // Turn off laser
+}
+
+void laser_pulse(uint32_t ulValue, uint32_t duration_us)
+{
+  laser_intensity(ulValue);
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = 42*duration_us; // Set extinguish time
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Start counting
+}
+
+
 #endif
 
 

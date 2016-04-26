@@ -32,7 +32,6 @@ typedef struct {
   unsigned long duration; // laser firing duration in microseconds, for pulsed firing mode
   unsigned long dur; // instantaneous duration
   bool status; // LASER_ON / LASER_OFF - buffered
-  bool firing; // LASER_ON / LASER_OFF - instantaneous
   uint8_t mode; // CONTINUOUS, PULSED, RASTER
   unsigned long last_firing; // microseconds since last laser firing
   bool diagnostics; // Verbose debugging output over serial
