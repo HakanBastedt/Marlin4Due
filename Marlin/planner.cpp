@@ -744,15 +744,15 @@ float junction_deviation = 0.1;
   // Calculate laser firings steps needed (steps_l) and consider that when determining largest
   // interval between steps for X, Y, Z, E, L to feed to the motion control code.
   if (laser.mode == RASTER || laser.mode == PULSED) {
+#define NewRange (100.0-LASER_SEVEN)
+#define OldRange 100.0
+    static const float Factor = 0.01/255.0*NewRange/OldRange*TC;
+    block->laser_raster_intensity_factor = laser.intensity * Factor;
     block->steps_l = labs(block->millimeters*laser.ppm);
     if (laser.mode == RASTER) {
       for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
 	block->laser_raster_data[i] = laser.raster_data[i];
       }
-#define NewRange (100.0-LASER_SEVEN)
-#define OldRange 100.0
-      static const float Factor = 0.01/255.0*NewRange/OldRange*TC;
-      block->laser_raster_intensity_factor = laser.intensity * Factor;
     }
   } else {
     block->steps_l = 0;

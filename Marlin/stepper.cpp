@@ -679,13 +679,11 @@ HAL_STEP_TIMER_ISR {
       if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON) {
         laser_fire(current_block->laser_intensity);
       }
-#ifdef LASER_NOO
       if (current_block->laser_status == LASER_OFF) {
+        laser_extinguish();
         if (laser.diagnostics)
 	  SERIAL_ECHOLN("Laser status set to off, in interrupt handler");
-        laser_extinguish();
       }
-#endif
     #endif // LASER
 
 	// Update endstops state, if enabled
@@ -742,38 +740,30 @@ HAL_STEP_TIMER_ISR {
       #endif
 
       #ifdef LASER
-	counter_l += current_block->steps_l;
-	if (counter_l > 0) {
-          if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-            laser_fire(current_block->laser_intensity);
-	    if (laser.diagnostics) {
-              SERIAL_ECHOPAIR("X: ", counter_x);
-	      SERIAL_ECHOPAIR("Y: ", counter_y);
-	      SERIAL_ECHOPAIR("L: ", counter_l);
-            }
-          }
+      counter_l += current_block->steps_l;
+      if (counter_l > 0) {
+	static const uint32_t Seven_factor = LASER_SEVEN*0.01*TC;
+	uint32_t ulValue=0;
+	if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+	  ulValue = current_block->laser_raster_intensity_factor * 255 + Seven_factor;
+	}
       #ifdef LASER_RASTER
-	  if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-	    static const uint32_t Seven_factor = LASER_SEVEN*0.01*TC;
-	    uint32_t ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
-	    laser_pulse(ulValue, current_block->laser_duration);
-             #if LASER_CONTROL == 2
-	    digitalWrite(LASER_FIRING_PIN, LASER_ARM);
-            #endif
-            if (laser.diagnostics) {
-	      SERIAL_ECHOPAIR("Pixel: ", ulValue);
-	    }
-	    counter_raster++;
-	  }
+	if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
+	  ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
+	  counter_raster++;
+	}
       #endif // LASER_RASTER
-		  counter_l -= current_block->step_event_count;
-		  }
+	laser_pulse(ulValue, current_block->laser_duration);
+      #if LASER_CONTROL == 2
+	digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+      #endif
+	counter_l -= current_block->step_event_count;
+      }
       #endif // LASER
-
-
       step_events_completed++;
     #endif
-    // Calculate new timer value
+
+      // Calculate new timer value
     unsigned long timer;
     unsigned long step_rate;
     if (step_events_completed <= (unsigned long)current_block->accelerate_until) {

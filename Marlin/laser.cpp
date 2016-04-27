@@ -71,18 +71,12 @@ void laser_init()
 
 void laser_fire(float intensity = 100.0) // Fire with range 0-100
 { 
-/////  laser.last_firing = micros(); // microseconds of last laser firing
   if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
   if (intensity < 0) intensity = 0;
   
-#define SEVEN 4 // This is threshold where the laser doesn't deliver any
-  float OldRange = 100.0 - 0.0;
-  float NewRange = (100 - SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
-  float NewValue = intensity * NewRange / OldRange + SEVEN;
-  
-  //If less than 7%, turn off the laser tube.
-  if(NewValue <= SEVEN) 
-    NewValue = 0;
+  static const float OldRange = 100.0 - 0.0;
+  static const float NewRange = (100 - LASER_SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
+  float NewValue = intensity * NewRange / OldRange + LASER_SEVEN;
   
   laser_intensity((0.01*LASER_PWM_MAX_DUTY_CYCLE)*NewValue); // Range 0 - LASER_PWM_MAX_DUTY_CYCLE
 
