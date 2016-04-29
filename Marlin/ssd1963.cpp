@@ -217,8 +217,8 @@ byte lcd_table_static()
 
 void lcd_table_dynamic()
 {
-  const float x1=108, y1=70, x2=708, y2=670;
-  const float xmA=45, ymA=128, xmB=45, ymB=728, xmC=920-45, ymC=807, xmD=920-45, ymD=87;
+  const float x1=108, y1=70, x2=708, y2=550;
+  const float xmA=45, ymA=140, xmB=45, ymB=740, xmC=920-45, ymC=740, xmD=920-45, ymD=140;
   float fmA, fmB, fmC, fmD;
   pinMode(LASER_BED_Z_PIN, INPUT);
   if (digitalRead(LASER_BED_Z_PIN)) 

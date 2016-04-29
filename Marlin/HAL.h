@@ -116,11 +116,11 @@ unsigned char eeprom_read_byte(unsigned char *pos);
 #define HAL_TIMER_RATE 		     (F_CPU/2)
 #define TICKS_PER_NANOSECOND   (HAL_TIMER_RATE)/1000
 
-#define LASEREXT_TIMER_NUM 5
-#define LASEREXT_TIMER_COUNTER TC1
-#define LASEREXT_TIMER_CHANNEL 2
-#define LASEREXT_TIMER_IRQN TC5_IRQn
-#define HAL_LASEREXT_TIMER_ISR 	void TC5_Handler()
+#define LASEREXT_TIMER_NUM 0
+#define LASEREXT_TIMER_COUNTER TC0
+#define LASEREXT_TIMER_CHANNEL 0
+#define LASEREXT_TIMER_IRQN TC0_IRQn
+#define HAL_LASEREXT_TIMER_ISR 	void TC0_Handler()
 
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_enable_interrupt (STEP_TIMER_NUM)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_disable_interrupt (STEP_TIMER_NUM)

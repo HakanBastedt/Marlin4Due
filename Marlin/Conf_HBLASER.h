@@ -470,7 +470,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
 #define X_MAX_POS 600
-#define Y_MAX_POS 600
+#define Y_MAX_POS 480
 #define Z_MAX_POS 1
 
 //===========================================================================
