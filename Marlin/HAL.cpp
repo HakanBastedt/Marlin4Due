@@ -407,7 +407,7 @@ void laser_init_pwm(uint8_t ulPin)
   }
 }
 
-inline void laser_intensity_bits(uint32_t ulValue) 
+void laser_intensity_bits(uint32_t ulValue) 
 {
   if (ulValue == 0) {
     if (chA)
@@ -425,7 +425,7 @@ inline void laser_intensity_bits(uint32_t ulValue)
   }
 }
 
-inline void laser_intensity(uint16_t intensity) 
+void laser_intensity(uint16_t intensity) 
 {
   uint32_t ulValue = (intensity * TC) / LASER_PWM_MAX_DUTY_CYCLE;
   
@@ -435,7 +435,7 @@ inline void laser_intensity(uint16_t intensity)
 Tc *laserext_tc = LASEREXT_TIMER_COUNTER;
 uint32_t laserext_channel = LASEREXT_TIMER_CHANNEL;
 
-inline void laserext_timer_start()
+void laserext_timer_start()
 {
   pmc_set_writeprotect(false); //remove write protection on registers
   
@@ -457,10 +457,13 @@ HAL_LASEREXT_TIMER_ISR
 {
   laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer
-  laser_intensity_bits(0); // Turn off laser
+  if (chA)
+    TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+  else
+    TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
 }
 
-inline void laser_pulse(uint32_t ulValue, uint32_t duration_us)
+void laser_pulse(uint32_t ulValue, uint32_t duration_us)
 {
   laser_intensity(ulValue);
   laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = 42*duration_us; // Set extinguish time

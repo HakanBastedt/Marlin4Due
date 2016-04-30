@@ -116,11 +116,11 @@ unsigned char eeprom_read_byte(unsigned char *pos);
 #define HAL_TIMER_RATE 		     (F_CPU/2)
 #define TICKS_PER_NANOSECOND   (HAL_TIMER_RATE)/1000
 
-#define LASEREXT_TIMER_NUM 0
-#define LASEREXT_TIMER_COUNTER TC0
-#define LASEREXT_TIMER_CHANNEL 0
-#define LASEREXT_TIMER_IRQN TC0_IRQn
-#define HAL_LASEREXT_TIMER_ISR 	void TC0_Handler()
+#define LASEREXT_TIMER_NUM 5
+#define LASEREXT_TIMER_COUNTER TC1
+#define LASEREXT_TIMER_CHANNEL 2
+#define LASEREXT_TIMER_IRQN TC5_IRQn
+#define HAL_LASEREXT_TIMER_ISR 	void TC5_Handler()
 
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_enable_interrupt (STEP_TIMER_NUM)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_disable_interrupt (STEP_TIMER_NUM)
@@ -154,13 +154,13 @@ uint16_t getAdcSuperSample(adc_channel_num_t chan);
 void stopAdcFreerun(adc_channel_num_t chan);
 
 void laser_init_pwm(uint8_t pin);
-inline void laser_intensity(uint16_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
+void laser_intensity(uint16_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
 // We use MCLK/2 as clock.
 #define TC (VARIANT_MCK / 2 / LASER_PWM_FREQUENCY)
 
-inline void laser_intensity_bits(uint32_t ulValue);
-inline void laser_pulse(uint32_t ulValue, uint32_t duration_us);
-inline void laserext_timer_start();
+void laser_intensity_bits(uint32_t ulValue);
+void laser_pulse(uint32_t ulValue, uint32_t duration_us);
+void laserext_timer_start();
 
 // --------------------------------------------------------------------------
 //

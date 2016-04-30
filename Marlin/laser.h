@@ -21,6 +21,7 @@
 
 #include <inttypes.h>
 #include "Configuration.h"
+#include "HAL.h"
 
 #ifdef LASER
 
