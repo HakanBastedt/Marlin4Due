@@ -445,8 +445,10 @@ void laserext_timer_start()
   
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
   laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
-  laserext_tc->TC_CHANNEL[laserext_channel].TC_CMR =  TC_CMR_CPCDIS | TC_CMR_TCCLKS_TIMER_CLOCK1; // Disable timer after 
-
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 | 
+    TC_CMR_CPCDIS |      // Disable timer when RC reached. So one shot.
+    TC_CMR_WAVE |         // Waveform mode
+    TC_CMR_WAVSEL_UP_RC;  // Counter running up and reset when equals to RC
   laserext_tc->TC_CHANNEL[laserext_channel].TC_IER = TC_IER_CPCS; //enable interrupt on timer match with register C
   laserext_tc->TC_CHANNEL[laserext_channel].TC_IDR = ~TC_IER_CPCS;
   
@@ -455,19 +457,22 @@ void laserext_timer_start()
 
 HAL_LASEREXT_TIMER_ISR
 {
-  laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
-  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer
+  // The clock should be disabled when it comes here.
+  // If not, the clock has been restarted. Let it run in that case.
+  if ((laserext_tc->TC_CHANNEL[laserext_channel].TC_SR & TC_SR_CLKSTA) == TC_SR_CLKSTA)
+    return; // Running, a future isr call will do the job
   if (chA)
     TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
   else
     TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
 }
 
-void laser_pulse(uint32_t ulValue, uint32_t duration_us)
+void laser_pulse(uint32_t ulValue, uint32_t ticks)
 {
-  laser_intensity(ulValue);
-  laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = 42*duration_us; // Set extinguish time
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = ticks; // Set extinguish time, calculated in planner for a block
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Enable timer and start counting
+  laser_intensity(ulValue);
 }
 
 #endif

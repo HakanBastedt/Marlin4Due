@@ -736,7 +736,8 @@ float junction_deviation = 0.1;
 #ifdef LASER
 
   block->laser_intensity = laser.intensity;
-  block->laser_duration = laser.duration;
+  // This is stupid to have here. 42 is determined by clock selection in laserext_timer_start()
+  block->laser_ticks = laser.duration*42;
   block->laser_status = laser.status;
   block->laser_mode = laser.mode;
   

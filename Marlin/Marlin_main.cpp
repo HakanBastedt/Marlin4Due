@@ -2188,7 +2188,7 @@ inline void gcode_G7()
   laser.mode = RASTER;
   laser.status = LASER_ON;
   laser.fired = RASTER; // Doesn't matter what it says
-#if 0  
+#if 0
   SERIAL_ECHOPAIR(" mm_per_ppm ", laser.raster_mm_per_pulse);
   SERIAL_ECHOPAIR(" ppm ", laser.ppm);
   SERIAL_ECHOPAIR(" duration ", laser.duration);

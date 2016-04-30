@@ -644,7 +644,7 @@ HAL_STEP_TIMER_ISR {
       step_events_completed = 0;
       #ifdef LASER
       counter_l = counter_x;
-      laser.dur = current_block->laser_duration;
+//      laser.dur = current_block->laser_duration;
       #endif //LASER
 
       #ifdef Z_LATE_ENABLE
@@ -746,20 +746,25 @@ HAL_STEP_TIMER_ISR {
 	uint32_t ulValue=0;
 	if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
 	  ulValue = current_block->laser_raster_intensity_factor * 255 + Seven_factor;
+	  laser_pulse(ulValue, current_block->laser_ticks);
+      #if LASER_CONTROL == 2
+	  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+      #endif
 	}
       #ifdef LASER_RASTER
 	if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
 	  ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
 	  counter_raster++;
+	  laser_pulse(ulValue, current_block->laser_ticks);
+      #if LASER_CONTROL == 2
+	  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+      #endif
 	}
       #endif // LASER_RASTER
-	laser_pulse(ulValue, current_block->laser_duration);
-      #if LASER_CONTROL == 2
-	digitalWrite(LASER_FIRING_PIN, LASER_ARM);
-      #endif
 	counter_l -= current_block->step_event_count;
       }
       #endif // LASER
+
       step_events_completed++;
     #endif
 
