@@ -457,10 +457,6 @@ void laserext_timer_start()
 
 HAL_LASEREXT_TIMER_ISR
 {
-  // The clock should be disabled when it comes here.
-  // If not, the clock has been restarted. Let it run in that case.
-  if ((laserext_tc->TC_CHANNEL[laserext_channel].TC_SR & TC_SR_CLKSTA) == TC_SR_CLKSTA)
-    return; // Running, a future isr call will do the job
   if (chA)
     TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
   else
@@ -472,6 +468,7 @@ void laser_pulse(uint32_t ulValue, uint32_t ticks)
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
   laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = ticks; // Set extinguish time, calculated in planner for a block
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Enable timer and start counting
+  NVIC_ClearPendingIRQ(LASEREXT_TIMER_IRQN);
   laser_intensity(ulValue);
 }
 
