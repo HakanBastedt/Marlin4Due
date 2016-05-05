@@ -78,7 +78,7 @@ void laser_fire(float intensity = 100.0) // Fire with range 0-100
   static const float NewRange = (100 - LASER_SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
   float NewValue = intensity * NewRange / OldRange + LASER_SEVEN;
   
-  laser_intensity((0.01*LASER_PWM_MAX_DUTY_CYCLE)*NewValue); // Range 0 - LASER_PWM_MAX_DUTY_CYCLE
+  laser_intensity_bits((0.01*LASER_PWM_MAX_DUTY_CYCLE)*NewValue); // Range 0 - LASER_PWM_MAX_DUTY_CYCLE
 
 #if LASER_CONTROL == 2
   digitalWrite(LASER_FIRING_PIN, LASER_ARM);
@@ -94,7 +94,7 @@ void laser_extinguish(){
     SERIAL_ECHOLN("Laser being extinguished");
   }
   
-  laser_intensity(0);
+  laser_intensity_bits(0);
   
 #if LASER_CONTROL == 2
   digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
