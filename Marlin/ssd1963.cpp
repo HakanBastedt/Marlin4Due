@@ -13,7 +13,8 @@ extern uint8_t BigFont[];
 extern uint8_t SixteenSegment40x60[];
 extern uint8_t Dingbats1_XL[];
 
-UTFT          myGLCD(20, 42, 41, 39, 38);
+//UTFT          myGLCD(20, 42, 41, 39, 38);
+UTFT          myGLCD(20, 38, 39, 40, 41);
 UTouch        myTouch(43, 44, 45, 46, 47);
 UTFT_Buttons  LCD_main_Buttons(&myGLCD, &myTouch);
 UTFT_Buttons  LCD_table_Buttons(&myGLCD, &myTouch);
