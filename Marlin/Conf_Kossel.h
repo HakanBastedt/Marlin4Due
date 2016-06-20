@@ -63,7 +63,7 @@ Here are some standard links for getting your machine calibrated:
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 250000
+#define BAUDRATE 115200
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices
@@ -71,7 +71,7 @@ Here are some standard links for getting your machine calibrated:
 // The following define selects which electronics board you have.
 // Please choose the name from boards.h that matches your setup
 
-#define MOTHERBOARD BOARD_RADDS
+#define MOTHERBOARD BOARD_RAMPS_FD_V1
 
 
 // Optional custom name for your RepStrap or other custom machine
@@ -714,7 +714,7 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 
 // Original RADDS Display from Willy
 // http://max3dshop.org/index.php/default/elektronik/radds-lcd-sd-display-with-reset-and-back-buttom.html
-#define RADDS_DISPLAY
+//#define RADDS_DISPLAY
 
 // PanelOne from T3P3 (via RAMPS 1.4 AUX2/AUX3)
 // http://reprap.org/wiki/PanelOne

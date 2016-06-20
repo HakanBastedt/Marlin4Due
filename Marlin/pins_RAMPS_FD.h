@@ -20,20 +20,21 @@
 #define X_STEP_PIN         63
 #define X_DIR_PIN          62
 #define X_ENABLE_PIN       48
-#define X_MIN_PIN          22
+#define X_MIN_PIN          -1
 #define X_MAX_PIN          30
 
 #define Y_STEP_PIN         65
 #define Y_DIR_PIN          64
 #define Y_ENABLE_PIN       46
-#define Y_MIN_PIN          24
-#define Y_MAX_PIN          -1 //38
+#define Y_MIN_PIN          -1 // 24
+#define Y_MAX_PIN          38 
 
 #define Z_STEP_PIN         67
 #define Z_DIR_PIN          66
 #define Z_ENABLE_PIN       44
 #define Z_MIN_PIN          -1 // 26
 #define Z_MAX_PIN          34
+#define Z_PROBE_PIN        26 // Z_MIN_PIN
 
 #define E0_STEP_PIN        36
 #define E0_DIR_PIN         28
@@ -53,14 +54,14 @@
 
 #define BEEPER             -1
 
-#define FAN_PIN             -1
+#define FAN_PIN             2
 
 #define PS_ON_PIN          -1
 
 #define KILL_PIN           41 //Dawson
 
 
-#define HEATER_BED_PIN     -1    // BED //Dawson - OTW, not on the right power feed!
+#define HEATER_BED_PIN     10  
 
 #define HEATER_0_PIN       9
 #define HEATER_1_PIN       -1

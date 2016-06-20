@@ -607,7 +607,7 @@ void servo_init() {
 
 }
 #ifdef HAKANS_FSR
-#define HAKANS_FSR_PIN 25
+#define HAKANS_FSR_PIN 49 
 
 int hakans_fsr_endstop_active=1;
 
