@@ -4408,7 +4408,7 @@ inline void gcode_M666() {
   }
 }
 
-#elif defined(Y_DUAL_ENDSTOPS) // !DELTA && defined(Y_DUAL_ENDSTOPS)
+#elif  !DELTA && defined(Y_DUAL_ENDSTOPS)
 /**
  * M666: For Y Dual Endstop setup, set y axis offset to the y2 axis.
  */
@@ -4418,7 +4418,7 @@ inline void gcode_M666() {
   SERIAL_EOL;
 }
 
-#elif defined(Z_DUAL_ENDSTOPS) // !DELTA && defined(Z_DUAL_ENDSTOPS)
+#elif  !DELTA && defined(Z_DUAL_ENDSTOPS)
 /**
  * M666: For Z Dual Endstop setup, set z axis offset to the z2 axis.
  */
@@ -5376,7 +5376,7 @@ inline void gcode_M650() // M650 Don't update the LCD P1 = update P0 = don't upd
 inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignment etc
 {
   float m651_intensity = 100;
-  unsigned long m651_duration = 10;
+  unsigned long m651_duration = 10; // Milliseconds
   if (code_seen('S') && !IsStopped()) 
     m651_intensity = (float) code_value();
   if (code_seen('L') && !IsStopped()) // Milliseconds
@@ -5384,12 +5384,14 @@ inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignmen
 
   st_synchronize();
   unsigned long stop_at = millis() + m651_duration;
+  laser.status = LASER_ON;
   if (m651_duration > 0 && m651_duration < 10000) { // Arbitrary limit at 10 seconds
     laser_fire(m651_intensity);
     while (millis() < stop_at) // Wasteful wait
       ;
-    laser_fire(0);
   }
+  laser_extinguish();
+  laser.status = LASER_OFF;
 }
 
 inline void gcode_M652()  // Turn airassist on
@@ -5416,6 +5418,14 @@ inline void gcode_M656()  // short debug puls
 {
   st_synchronize();
   laser_pulse(100, 1000); // 1 ms
+}
+inline void gcode_M657()  // short debug puls
+{
+  st_synchronize();
+  int v = analogRead(A4);
+  SERIAL_ECHO("Analog valuer read: ");
+  SERIAL_ECHOLN(v);
+
 }
 #endif // LASER
 
@@ -6187,6 +6197,9 @@ void process_next_command() {
       break;
     case 656:
       gcode_M656();
+      break;
+    case 657:
+      gcode_M657();
       break;
 #endif
 

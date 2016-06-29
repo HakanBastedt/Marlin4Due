@@ -39,14 +39,6 @@ Here are some standard links for getting your machine calibrated:
 
 #define Y_DUAL_STEPPER_DRIVERS
 #define Y_DUAL_ENDSTOPS
-#ifdef Y_DUAL_STEPPER_DRIVERS
-  #define Y2_STEP_PIN   67
-  #define Y2_DIR_PIN    66
-  #define Y2_ENABLE_PIN 3
-#endif
-#ifdef Y_DUAL_ENDSTOPS
-  #define Y2_MIN_PIN    3 
-#endif
 
 #define LASER
 #ifdef LASER
@@ -109,13 +101,13 @@ Here are some standard links for getting your machine calibrated:
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
 // :[0,1,2,3,4,5,6,7]
-//#define MYSERIAL SerialUSB // Native
-#define MYSERIAL Serial    // Programming
+#define MYSERIAL SerialUSB // Native
+//#define MYSERIAL Serial    // Programming
 //#define MYSERIAL Serial3    // ESP8266
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 115200
+#define BAUDRATE 57600
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices
@@ -469,8 +461,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 #define X_MIN_POS 0
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS 600
-#define Y_MAX_POS 600
+#define X_MAX_POS 635
+#define Y_MAX_POS 652
 #define Z_MAX_POS 1
 
 //===========================================================================
@@ -647,8 +639,8 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 
 // default settings
 // Microstepping 1/8 för ökad hastighet
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {200,200,100,50}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {80000, 80000, 80000, 25}    // (mm/sec)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,100,50}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {40000, 40000, 80000, 25}    // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {20000,20000,20000,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          10000    // X, Y, Z and E acceleration in mm/s^2 for printing moves

@@ -465,10 +465,12 @@ HAL_LASEREXT_TIMER_ISR
 
 void laser_pulse(uint32_t ulValue, uint32_t ticks)
 {
+#if 0
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
   laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = ticks; // Set extinguish time, calculated in planner for a block
   laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Enable timer and start counting
   NVIC_ClearPendingIRQ(LASEREXT_TIMER_IRQN);
+#endif
   laser_intensity(ulValue);
 }
 
