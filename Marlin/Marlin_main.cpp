@@ -2046,7 +2046,13 @@ inline void gcode_G0_G1(int codenum) {
 #endif //FWRETRACT
     // G0
     if (codenum == 0) { 
+      int intens = laser.intensity;
+      int on = laser.status;
+      laser.intensity = 0;
+      laser.status = LASER_OFF;
       prepare_move();
+      laser.intensity = intens;
+      laser.status = on;
       return;
     }
     // G1
