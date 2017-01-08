@@ -90,6 +90,7 @@ Here are some standard links for getting your machine calibrated:
 #define LASER_DIAMETER 0.1 // milimeters
 #define LASER_PWM_FREQUENCY 20000 // hertz
 #define LASER_FOCAL_HEIGHT 50.80 // z axis position at which the laser is focused
+
 #endif // LASER
 
 
@@ -760,7 +761,7 @@ const bool Y2_MAX_ENDSTOP_INVERTING = false;
 //
 // ==> REMEMBER TO INSTALL U8glib to your ARDUINO library folder: http://code.google.com/p/u8glib/wiki/u8glib
 
-#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // The RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626

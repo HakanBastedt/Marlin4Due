@@ -32,9 +32,9 @@
 // For SAM3X:
 //!#define _useTimer1
 //!#define _useTimer2
-#define _useTimer3
+//!#define _useTimer3
 //!#define _useTimer4
-#define _useTimer5
+//!#define _useTimer5
 
 /*
   TC0, chan 0 => TC0_Handler

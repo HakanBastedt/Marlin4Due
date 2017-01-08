@@ -679,6 +679,13 @@ void setup()
   setup_filrunoutpin();
   setup_powerhold();
 
+#if defined(MOSFET1_PIN)
+  pinMode(MOSFET1_PIN, OUTPUT);
+  digitalWrite(MOSFET1_PIN, LOW);
+  pinMode(MOSFET2_PIN, OUTPUT);
+  digitalWrite(MOSFET2_PIN, LOW);
+#endif
+
 #if HAS_STEPPER_RESET
   disableStepperDrivers();
 #endif
@@ -870,7 +877,7 @@ void get_command() {
 #endif
 
     serial_char = MYSERIAL.read();
-    // SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
+    //SERIAL_PROTOCOLCHAR(serial_char);  // No echo!
 
     //
     // If the character ends the line, or the line is full...
@@ -2038,10 +2045,18 @@ inline void gcode_G0_G1(int codenum) {
     }
 #endif //FWRETRACT
     // G0
+    #ifdef LASER_FIRE_G1
     if (codenum == 0) { 
+      int intens = laser.intensity;
+      int on = laser.status;
+      laser.intensity = 0;
+      laser.status = LASER_OFF;
       prepare_move();
+      laser.intensity = intens;
+      laser.status = on;
       return;
     }
+    #endif
     // G1
 #ifdef LASER_FIRE_G1
       laser_diagnose();
@@ -2150,12 +2165,15 @@ inline void gcode_G10_G11(bool doRetract=false) {
 #ifdef LASER_RASTER
 inline void gcode_G7() 
 {
-  if (code_seen('L')) 
-    laser.raster_raw_length = int(code_value());
   if (code_seen('$')) {
     laser.raster_direction = (bool)code_value();
     destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+    laser.mode = CONTINUOUS;
+    laser.status = LASER_OFF;
+    prepare_move(); // Do a separate step for Y movement
   }
+  if (code_seen('L')) 
+    laser.raster_raw_length = int(code_value());
   if (code_seen('D')) 
     laser.raster_num_pixels = base64_decode(laser.raster_data, seen_pointer+1, laser.raster_raw_length);
   if (!laser.raster_direction) {
@@ -2178,7 +2196,7 @@ inline void gcode_G7()
   laser.mode = RASTER;
   laser.status = LASER_ON;
   laser.fired = RASTER; // Doesn't matter what it says
-#if 0  
+#if 0
   SERIAL_ECHOPAIR(" mm_per_ppm ", laser.raster_mm_per_pulse);
   SERIAL_ECHOPAIR(" ppm ", laser.ppm);
   SERIAL_ECHOPAIR(" duration ", laser.duration);
@@ -4398,7 +4416,7 @@ inline void gcode_M666() {
   }
 }
 
-#elif defined(Y_DUAL_ENDSTOPS) // !DELTA && defined(Y_DUAL_ENDSTOPS)
+#elif  !DELTA && defined(Y_DUAL_ENDSTOPS)
 /**
  * M666: For Y Dual Endstop setup, set y axis offset to the y2 axis.
  */
@@ -4408,7 +4426,7 @@ inline void gcode_M666() {
   SERIAL_EOL;
 }
 
-#elif defined(Z_DUAL_ENDSTOPS) // !DELTA && defined(Z_DUAL_ENDSTOPS)
+#elif  !DELTA && defined(Z_DUAL_ENDSTOPS)
 /**
  * M666: For Z Dual Endstop setup, set z axis offset to the z2 axis.
  */
@@ -5333,7 +5351,6 @@ inline void gcode_M649() // M649 set laser options
 {
   if (code_seen('S') && !IsStopped()) {
     laser.intensity = (float) code_value();
-    laser.rasterlaserpower =  laser.intensity;
   }
   if (code_seen('L') && !IsStopped()) laser.duration = (unsigned long) labs(code_value());
   if (code_seen('P') && !IsStopped()) laser.ppm = (float) code_value();
@@ -5346,30 +5363,28 @@ inline void gcode_M649() // M649 set laser options
   }
 }
 
-inline void gcode_M650() // M650 Don't update the LCD P0 = update(default) P1 = don't update
+inline void gcode_M650() // M650 Don't update the LCD P1 = update P0 = don't update
 {
   if (code_seen('P')) {
     int val = code_value();
     switch (val) {
-      case 0:
-	laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
-	return;
-	break;
       case 1:
+	laserUpdateLCD = true; // Optimiza cutting speed by not updating LCD
+	break;
+      case 0:
 	laserUpdateLCD = false; // Optimiza cutting speed by not updating LCD
-	return;
 	break;
       }
   }
   SERIAL_ECHO_START;
   SERIAL_ECHO("LCD Update setting: ");
-  SERIAL_ECHOLN(laserUpdateLCD == 0 ? "ON" : "OFF");
+  SERIAL_ECHOLN(laserUpdateLCD ? "ON" : "OFF");
 }
 
 inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignment etc
 {
   float m651_intensity = 100;
-  unsigned long m651_duration = 1;
+  unsigned long m651_duration = 10; // Milliseconds
   if (code_seen('S') && !IsStopped()) 
     m651_intensity = (float) code_value();
   if (code_seen('L') && !IsStopped()) // Milliseconds
@@ -5377,15 +5392,49 @@ inline void gcode_M651() // M651 Make a ms long laser pulse. For mirror alignmen
 
   st_synchronize();
   unsigned long stop_at = millis() + m651_duration;
+  laser.status = LASER_ON;
   if (m651_duration > 0 && m651_duration < 10000) { // Arbitrary limit at 10 seconds
     laser_fire(m651_intensity);
     while (millis() < stop_at) // Wasteful wait
       ;
-    laser_fire(0);
   }
+  laser_extinguish();
+  laser.status = LASER_OFF;
 }
 
+inline void gcode_M652()  // Turn airassist on
+{
+  uint8_t airon = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255;
+  digitalWrite(MOSFET1_PIN, airon);
+}
+inline void gcode_M653()  // Turn off airassist
+{
+  st_synchronize();
+  digitalWrite(MOSFET1_PIN, LOW);
+}
+inline void gcode_M654()  // Turn cooler fan on
+{
+  uint8_t coolon = code_seen('S') ? constrain(code_value_short(), 0, 255) : 255;
+  digitalWrite(MOSFET2_PIN, coolon);
+}
+inline void gcode_M655()  // Turn off airassist
+{
+  st_synchronize();
+  digitalWrite(MOSFET2_PIN, LOW);
+}
+inline void gcode_M656()  // short debug puls
+{
+  st_synchronize();
+  laser_pulse(100, 1000); // 1 ms
+}
+inline void gcode_M657()  // short debug puls
+{
+  st_synchronize();
+  int v = analogRead(A4);
+  SERIAL_ECHO("Analog valuer read: ");
+  SERIAL_ECHOLN(v);
 
+}
 #endif // LASER
 
 /**
@@ -6141,6 +6190,24 @@ void process_next_command() {
       break;
     case 651:
       gcode_M651();
+      break;
+    case 652:
+      gcode_M652();
+      break;
+    case 653:
+      gcode_M653();
+      break;
+    case 654:
+      gcode_M654();
+      break;
+    case 655:
+      gcode_M655();
+      break;
+    case 656:
+      gcode_M656();
+      break;
+    case 657:
+      gcode_M657();
       break;
 #endif
 

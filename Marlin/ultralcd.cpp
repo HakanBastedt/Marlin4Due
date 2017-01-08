@@ -1,4 +1,5 @@
 #include "ultralcd.h"
+#ifndef HB_SSD1963
 #ifdef ULTRA_LCD
 #include "Marlin.h"
 #include "language.h"
@@ -2281,3 +2282,4 @@ char *ftostr52(const float &x) {
 #endif  // MANUAL_BED_LEVELING
 
 #endif // ULTRA_LCD
+#endif

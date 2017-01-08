@@ -21,6 +21,7 @@
 
 #include <inttypes.h>
 #include "Configuration.h"
+#include "HAL.h"
 
 #ifdef LASER
 
@@ -32,7 +33,6 @@ typedef struct {
   unsigned long duration; // laser firing duration in microseconds, for pulsed firing mode
   unsigned long dur; // instantaneous duration
   bool status; // LASER_ON / LASER_OFF - buffered
-  bool firing; // LASER_ON / LASER_OFF - instantaneous
   uint8_t mode; // CONTINUOUS, PULSED, RASTER
   unsigned long last_firing; // microseconds since last laser firing
   bool diagnostics; // Verbose debugging output over serial
@@ -40,7 +40,6 @@ typedef struct {
   unsigned int lifetime; // laser lifetime firing counter in minutes
   #ifdef LASER_RASTER
     unsigned char raster_data[LASER_MAX_RASTER_LINE];
-    unsigned char rasterlaserpower;
 
     float raster_aspect_ratio;
     float raster_mm_per_pulse;
@@ -63,7 +62,6 @@ laser_init_pwm() and laser_intensity() are in HAL.h
 
 void laser_init();
 void laser_fire(float intensity);
-void laser_fire_byte(uint8_t intensity);
 void laser_extinguish();
 void laser_update_lifetime();
 void laser_set_mode(int mode);
@@ -91,7 +89,8 @@ void laser_diagnose();
 #define PULSED 1
 #define RASTER 2
 
-// For PWM
-#define LASER_PWM_MAX_DUTY_CYCLE 255
+// 2100 is max at 20 kHz (42 MHz / 20 kHz = 2100
+// Higher *can* be used, but will be mapped to 2100.
+#define LASER_PWM_MAX_DUTY_CYCLE (VARIANT_MCK/2/LASER_PWM_FREQUENCY)
 #endif // LASER_H
 #endif

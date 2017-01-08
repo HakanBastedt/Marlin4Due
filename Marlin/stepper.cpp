@@ -64,7 +64,7 @@ static unsigned int cleaning_buffer_counter;
 #endif
 
 #ifdef LASER
-static long counter_l_1000;
+static long counter_l;
 #endif // LASER
 
 #ifdef LASER_RASTER
@@ -620,14 +620,6 @@ HAL_STEP_TIMER_ISR {
   stepperChannel->TC_SR;
   //stepperChannel->TC_RC = 1000000;
 
-  #ifdef LASER
-  if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
-    if (laser.diagnostics) 
-      SERIAL_ECHOLN("Laser firing duration elapsed, in interrupt handler");
-    laser_extinguish();
-  }
-  #endif LASER
-
   if (cleaning_buffer_counter)
   {
     current_block = NULL;
@@ -651,8 +643,8 @@ HAL_STEP_TIMER_ISR {
       counter_y = counter_z = counter_e = counter_x;
       step_events_completed = 0;
       #ifdef LASER
-      counter_l_1000 = 1000*counter_x;
-      laser.dur = current_block->laser_duration;
+      counter_l = counter_x;
+//      laser.dur = current_block->laser_duration;
       #endif //LASER
 
       #ifdef Z_LATE_ENABLE
@@ -663,9 +655,13 @@ HAL_STEP_TIMER_ISR {
         }
       #endif
       #ifdef LASER_RASTER
+	extern bool LCD_doingRaster;
         if (current_block->laser_mode == RASTER) {
           counter_raster = 0;
-        }
+	  LCD_doingRaster = true;
+        } else
+	  LCD_doingRaster = false;
+
       #endif // LASER_RASTER
 
       // #ifdef ADVANCE
@@ -684,9 +680,9 @@ HAL_STEP_TIMER_ISR {
         laser_fire(current_block->laser_intensity);
       }
       if (current_block->laser_status == LASER_OFF) {
+        laser_extinguish();
         if (laser.diagnostics)
 	  SERIAL_ECHOLN("Laser status set to off, in interrupt handler");
-        laser_extinguish();
       }
     #endif // LASER
 
@@ -744,41 +740,35 @@ HAL_STEP_TIMER_ISR {
       #endif
 
       #ifdef LASER
-      // steps_l_1000 = step count between laser firings in 1/1000's
-      //
-	counter_l_1000 += current_block->steps_l_1000;
-	if (counter_l_1000 > 0) {
-          if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-            laser_fire(current_block->laser_intensity);
-	    if (laser.diagnostics) {
-              SERIAL_ECHOPAIR("X: ", counter_x);
-	      SERIAL_ECHOPAIR("Y: ", counter_y);
-	      SERIAL_ECHOPAIR("L: ", counter_l_1000);
-            }
-          }
+      counter_l += current_block->steps_l;
+      if (counter_l > 0) {
+	static const uint32_t Seven_factor = LASER_SEVEN*0.01*TC;
+	uint32_t ulValue=0;
+	if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+	  ulValue = current_block->laser_raster_intensity_factor * 255 + Seven_factor;
+	  laser_pulse(ulValue, current_block->laser_ticks);
+      #if LASER_CONTROL == 2
+	  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+      #endif
+	}
       #ifdef LASER_RASTER
-	  if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-	    uint8_t v = current_block->laser_raster_data[counter_raster];
-            laser_fire_byte(v); // Full byte range 0-255
-
-            if (laser.diagnostics) {
-	      SERIAL_ECHOPAIR("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
-	    }
-	    counter_raster++;
-	  }
+	if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
+	  ulValue = current_block->laser_raster_intensity_factor * current_block->laser_raster_data[counter_raster] + Seven_factor;
+	  counter_raster++;
+	  laser_pulse(ulValue, current_block->laser_ticks);
+      #if LASER_CONTROL == 2
+	  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+      #endif
+	}
       #endif // LASER_RASTER
-		  counter_l_1000 -= 1000*current_block->step_event_count;
-		  }
-		  if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
-			if (laser.diagnostics) SERIAL_ECHOLN("Laser firing duration elapsed, in interrupt fast loop");
-		    laser_extinguish();
-		  }
+	counter_l -= current_block->step_event_count;
+      }
       #endif // LASER
-
 
       step_events_completed++;
     #endif
-    // Calculate new timer value
+
+      // Calculate new timer value
     unsigned long timer;
     unsigned long step_rate;
     if (step_events_completed <= (unsigned long)current_block->accelerate_until) {
@@ -852,9 +842,6 @@ HAL_STEP_TIMER_ISR {
     if (step_events_completed >= current_block->step_event_count) {
       current_block = NULL;
       plan_discard_current_block();
-#ifdef LASER
-      laser_extinguish();
-#endif
     }
   } // current_block != NULL
 }
@@ -1038,6 +1025,13 @@ void st_init() {
     #endif
   #endif
 
+  #if HAS_Y2_MIN
+    SET_INPUT(Y2_MIN_PIN);
+    #ifdef ENDSTOPPULLUP_YMIN
+      PULLUP(Y2_MIN_PIN,HIGH);
+    #endif
+  #endif
+
   #if HAS_Z_MIN
     SET_INPUT(Z_MIN_PIN);
     #ifdef ENDSTOPPULLUP_ZMIN
@@ -1056,6 +1050,13 @@ void st_init() {
     SET_INPUT(Y_MAX_PIN);
     #ifdef ENDSTOPPULLUP_YMAX
       PULLUP(Y_MAX_PIN,HIGH);
+    #endif
+  #endif
+
+  #if HAS_Y2_MAX
+    SET_INPUT(Y2_MAX_PIN);
+    #ifdef ENDSTOPPULLUP_YMAX
+      PULLUP(Y2_MAX_PIN,HIGH);
     #endif
   #endif
 

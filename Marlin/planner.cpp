@@ -736,41 +736,29 @@ float junction_deviation = 0.1;
 #ifdef LASER
 
   block->laser_intensity = laser.intensity;
-  block->laser_duration = laser.duration;
+  // This is stupid to have here. 42 is determined by clock selection in laserext_timer_start()
+  block->laser_ticks = laser.duration*42;
   block->laser_status = laser.status;
   block->laser_mode = laser.mode;
   
   // When operating in PULSED or RASTER modes, laser pulsing must operate in sync with movement.
-  // Calculate steps between laser firings (steps_l) and consider that when determining largest
+  // Calculate laser firings steps needed (steps_l) and consider that when determining largest
   // interval between steps for X, Y, Z, E, L to feed to the motion control code.
   if (laser.mode == RASTER || laser.mode == PULSED) {
-    block->steps_l_1000 = labs(1000*block->millimeters*laser.ppm);
-    for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
-
-      //Scale the image intensity based on the raster power.
-      //100% power on a pixel basis is 255, convert back to 255 = 100.
-      
-      //http://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
-      int OldRange, NewRange;
-      float NewValue;
-      OldRange = (255 - 0);
-#define SEVEN 6
-      NewRange = (laser.rasterlaserpower*255.0/100.0 - SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
-      NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / OldRange) + SEVEN);
-      
-      //If less than 7%, turn off the laser tube.
-      if(NewValue <= SEVEN) 
-	NewValue = 0;
-      
-      //      SERIAL_ECHOPAIR(" ", NewValue);
-      //      if ((i+1)%10 == 0)
-      //        SERIAL_ECHOLN(" ");
-      block->laser_raster_data[i] = NewValue; 
+#define NewRange (100.0-LASER_SEVEN)
+#define OldRange 100.0
+    static const float Factor = 0.01/255.0*NewRange/OldRange*TC;
+    block->laser_raster_intensity_factor = laser.intensity * Factor;
+    block->steps_l = labs(block->millimeters*laser.ppm);
+    if (laser.mode == RASTER) {
+      for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
+	block->laser_raster_data[i] = laser.raster_data[i];
+      }
     }
   } else {
-    block->steps_l_1000 = 0;
+    block->steps_l = 0;
   }
-  block->step_event_count = max(block->step_event_count, block->steps_l_1000/1000);
+  block->step_event_count = max(block->step_event_count, block->steps_l);
   
   if (laser.diagnostics) {
     if (block->laser_status == LASER_ON) {

@@ -353,6 +353,7 @@ void stopAdcFreerun(adc_channel_num_t chan)
 
 #ifdef LASER
 
+#include "laser.h"
 static void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v)
 {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
@@ -365,16 +366,11 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 
 static uint32_t chA, chNo;
 static Tc *chTC;
-static uint32_t TC_const;
 
-void laser_init_pwm(uint8_t ulPin, uint16_t ulFreq) 
+void laser_init_pwm(uint8_t ulPin) 
 {
   uint32_t attr = g_APinDescription[ulPin].ulPinAttribute;
   if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
-    // We use MCLK/2 as clock.
-    const uint32_t TC = VARIANT_MCK / 2 / ulFreq;
-    TC_const = TC/TC_MAX_DUTY_CYCLE;
-
     // Setup Timer for this pin
     ETCChannel channel = g_APinDescription[ulPin].ulTCChannel;
     static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
@@ -411,8 +407,8 @@ void laser_init_pwm(uint8_t ulPin, uint16_t ulFreq)
   }
 }
 
-void laser_intensity(uint8_t intensity) {
-  uint32_t ulValue = intensity * TC_const;
+void laser_intensity_bits(uint32_t ulValue) 
+{
   if (ulValue == 0) {
     if (chA)
       TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
@@ -428,6 +424,56 @@ void laser_intensity(uint8_t intensity) {
     }
   }
 }
+
+void laser_intensity(uint16_t intensity) 
+{
+  uint32_t ulValue = (intensity * TC) / LASER_PWM_MAX_DUTY_CYCLE;
+  
+  laser_intensity_bits(ulValue);
+}
+
+Tc *laserext_tc = LASEREXT_TIMER_COUNTER;
+uint32_t laserext_channel = LASEREXT_TIMER_CHANNEL;
+
+void laserext_timer_start()
+{
+  pmc_set_writeprotect(false); //remove write protection on registers
+  
+  IRQn_Type irq = LASEREXT_TIMER_IRQN;
+  
+  pmc_enable_periph_clk((uint32_t)irq); // Wake up
+  
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_SR; // clear status register
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 | 
+    TC_CMR_CPCDIS |      // Disable timer when RC reached. So one shot.
+    TC_CMR_WAVE |         // Waveform mode
+    TC_CMR_WAVSEL_UP_RC;  // Counter running up and reset when equals to RC
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_IER = TC_IER_CPCS; //enable interrupt on timer match with register C
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_IDR = ~TC_IER_CPCS;
+  
+  NVIC_EnableIRQ(irq); //enable Nested Vector Interrupt Controller
+}
+
+HAL_LASEREXT_TIMER_ISR
+{
+  if (chA)
+    TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+  else
+    TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+}
+
+void laser_pulse(uint32_t ulValue, uint32_t ticks)
+{
+#if 0
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKDIS; // Disable timer while changing registers
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_RC   = ticks; // Set extinguish time, calculated in planner for a block
+  laserext_tc->TC_CHANNEL[laserext_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Enable timer and start counting
+  NVIC_ClearPendingIRQ(LASEREXT_TIMER_IRQN);
+#endif
+  laser_intensity(ulValue);
+}
+
 #endif
 
 

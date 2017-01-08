@@ -1,5 +1,5 @@
-
-/**
+/**   DUE
+ *
  * Marlin Firmware
  *
  * Based on Sprinter and grbl.
@@ -54,4 +54,10 @@
 
 #if defined(DIGIPOT_I2C)
   #include <Wire.h>
+#endif
+
+#ifdef HB_SSD1963
+#include <UTFT.h>
+#include <UTouch.h>
+#include <UTFT_Buttons.h>
 #endif

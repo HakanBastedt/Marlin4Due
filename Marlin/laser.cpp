@@ -20,6 +20,7 @@
 #include "Configuration.h"
 #ifdef LASER
 #include "laser.h"
+#include "HAL.h"
 #include "pins.h"
 #include <avr/interrupt.h>
 #include <Arduino.h>
@@ -29,7 +30,9 @@ laser_t laser;
 
 void laser_init()
 {
-  laser_init_pwm(LASER_INTENSITY_PIN, LASER_PWM_FREQUENCY);
+  laser_init_pwm(LASER_INTENSITY_PIN);
+//  laserext_timer_start();
+  laser_intensity(0);
 
 #ifdef LASER_PERIPHERALS
   digitalWrite(LASER_PERIPHERALS_PIN, HIGH);  // Laser peripherals are active LOW, so preset the pin
@@ -49,7 +52,6 @@ void laser_init()
   laser.ppm = 0.0;
   laser.duration = 0;
   laser.status = LASER_OFF;
-  laser.firing = LASER_OFF;
   laser.mode = CONTINUOUS;
   laser.last_firing = 0;
   laser.diagnostics = false;
@@ -70,12 +72,14 @@ void laser_init()
 
 void laser_fire(float intensity = 100.0) // Fire with range 0-100
 { 
-  laser.firing = LASER_ON;
-  laser.last_firing = micros(); // microseconds of last laser firing
   if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
   if (intensity < 0) intensity = 0;
-
-  laser_intensity(LASER_PWM_MAX_DUTY_CYCLE*intensity/100.0); // Range 0-255
+  
+  static const float OldRange = 100.0 - 0.0;
+  static const float NewRange = (100 - LASER_SEVEN); //7% power on my unit outputs hardly any noticable burn at F3000 on paper, so adjust the raster contrast based off 7 being the lower. 7 still produces burns at slower feed rates, but getting less power than this isn't typically needed at slow feed rates.
+  float NewValue = intensity * NewRange / OldRange + LASER_SEVEN;
+  
+  laser_intensity_bits((0.01*LASER_PWM_MAX_DUTY_CYCLE)*NewValue); // Range 0 - LASER_PWM_MAX_DUTY_CYCLE
 
 #if LASER_CONTROL == 2
   digitalWrite(LASER_FIRING_PIN, LASER_ARM);
@@ -86,42 +90,24 @@ void laser_fire(float intensity = 100.0) // Fire with range 0-100
   }
 }
 
-void laser_fire_byte(uint8_t intensity) // Fire with byte-range 0-255
-{
-  laser.firing = LASER_ON;
-  laser.last_firing = micros(); // microseconds of last laser firing
-
-  laser_intensity(LASER_PWM_MAX_DUTY_CYCLE*intensity/255.0); // Range 0-255
-
+void laser_extinguish(){
+  if (laser.diagnostics) {
+    SERIAL_ECHOLN("Laser being extinguished");
+  }
+  
+  laser_intensity_bits(0);
+  
 #if LASER_CONTROL == 2
-  digitalWrite(LASER_FIRING_PIN, LASER_ARM);
+  digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
 #endif
   
+  laser.time += millis() - (laser.last_firing / 1000);
+  
   if (laser.diagnostics) {
-    SERIAL_ECHOLN("Laser_byte fired");
+    SERIAL_ECHOLN("Laser extinguished");
   }
 }
 
-void laser_extinguish(){
-  if (laser.firing == LASER_ON) {
-    laser.firing = LASER_OFF;
-    if (laser.diagnostics) {
-      SERIAL_ECHOLN("Laser being extinguished");
-    }
-
-    laser_intensity(0);
-
-#if LASER_CONTROL == 2
-    digitalWrite(LASER_FIRING_PIN, LASER_UNARM);
-#endif
-
-    laser.time += millis() - (laser.last_firing / 1000);
-    
-    if (laser.diagnostics) {
-      SERIAL_ECHOLN("Laser extinguished");
-    }
-  }
-}
 void laser_set_mode(int mode){
   switch(mode){
   case 0:

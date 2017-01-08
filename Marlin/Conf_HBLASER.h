@@ -1,5 +1,5 @@
-#ifndef CONF_KOSSEL_H
-#define CONF_KOSSEL_H
+#ifndef CONF_LASERCO2_H
+#define CONF_LASERCO2_H
 
 #include "boards.h"
 #include "macros.h"
@@ -22,35 +22,78 @@ Here are some standard links for getting your machine calibrated:
 // Advanced settings can be found in Configuration_adv.h
 // BASIC SETTINGS: select your board type, temperature sensor type, axis scaling, and endstop configuration
 
-//===========================================================================
-//============================= DELTA Printer ===============================
-//===========================================================================
-// For a Delta printer replace the configuration files with the files in the
-// example_configurations/delta directory.
-//
 
-//===========================================================================
-//============================= SCARA Printer ===============================
-//===========================================================================
-// For a Delta printer replace the configuration files with the files in the
-// example_configurations/SCARA directory.
-//
 
 // @section info
 
 // User-specified version info of this build to display in [Pronterface, etc] terminal window during
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
-#define STRING_VERSION "1.0.3 dev"
+
+//===========================================================================
+//============================= Laser Settings ==============================
+//===========================================================================
+//
+// Laser control is used by the Muve1 3D printer and the Buildlog.net laser cutter
+//
+
+#define Y_DUAL_STEPPER_DRIVERS
+#define Y_DUAL_ENDSTOPS
+
+#define LASER
+#ifdef LASER
+//// The following define selects how to control the laser.  Please choose the one that matches your setup.
+// 1 = Single pin control - LOW when off, HIGH when on, PWM to adjust intensity
+// 2 = Two pin control - A firing pin for which LOW = off, HIGH = on, and a seperate intensity pin which carries a constant PWM signal and adjusts duty cycle to control intensity
+
+#define LASER_CONTROL 1
+//#define LASER_POWER_DOWN
+#define LASER_INTENSITY_PIN 4 
+//#define LASER_FIRING_PIN    7 // S1
+//#define LASER_POWER_PIN     -1 // 
+// LASER_AIR 8
+#define LASER_SEVEN 3.5
+#define LASER_BED_Z_PIN 58 // A4 pin
+
+// Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
+//#define HIGH_TO_FIRE
+
+//// The following defines select which G codes tell the laser to fire.  It's OK to uncomment more than one.
+#define LASER_FIRE_G1 10 // fire the laser on a G1 move, extinguish when the move ends
+#define LASER_FIRE_SPINDLE 11 // fire the laser on M3, extinguish on M5
+//#define LASER_FIRE_E 12 // fire the laser when the E axis moves
+
+//// Raster mode enables the laser to etch bitmap data at high speeds.  Increases command buffer size substantially.
+#define LASER_RASTER
+#define LASER_MAX_RASTER_LINE 68 // maximum number of base64 encoded pixels per raster gcode command
+#define LASER_RASTER_ASPECT_RATIO 1 // pixels aren't square on most displays, 1.33 == 4:3 aspect ratio
+#define LASER_RASTER_MM_PER_PULSE 0.2 //Can be overridden by providing an R value in M649 command : M649 S17 B2 D0 R0.1 F4000
+
+//// Uncomment the following if the laser cutter is equipped with a peripheral relay board
+//// to control power to an exhaust fan, water pump, laser power supply, etc.
+//#define LASER_PERIPHERALS
+//#define LASER_PERIPHERALS_TIMEOUT 30000  // Number of milliseconds to wait for status signal from peripheral control board
+
+//// Uncomment the following line to enable cubic bezier curve movement with the G5 code
+// #define G5_BEZIER
+
+// Uncomment these options for the Buildlog.net laser cutter, and other similar models
+//#define CUSTOM_MENDEL_NAME "Laser Cutter"
+#define LASER_WATTS 40.0
+#define LASER_DIAMETER 0.1 // milimeters
+#define LASER_PWM_FREQUENCY 20000 // hertz
+#define LASER_FOCAL_HEIGHT 50.80 // z axis position at which the laser is focused
+
+#define HB_SSD1963
+
+#endif // LASER
+
+
+#define STRING_VERSION "0.1 HBLASER dev"
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(Hakans, Kossel Due)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Hakans, CO2 laser)" // Who made the changes.
 #define STRING_SPLASH_LINE1 "v" STRING_VERSION // will be shown during bootup in line 1
 //#define STRING_SPLASH_LINE2 STRING_VERSION_CONFIG_H // will be shown during bootup in line2
-
-
-#define HAKANS_FSR
-#define HAS_AUTO_FAN_0
-// #define EXTRUDER_0_AUTO_FAN_PIN 9 i Configuation_adv.h
 
 // @section machine
 
@@ -58,12 +101,13 @@ Here are some standard links for getting your machine calibrated:
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
 // :[0,1,2,3,4,5,6,7]
-//#define MYSERIAL SerialUSB // Native
-#define MYSERIAL Serial    // Programming
+#define MYSERIAL SerialUSB // Native
+//#define MYSERIAL Serial    // Programming
+//#define MYSERIAL Serial3    // ESP8266
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
-#define BAUDRATE 115200
+#define BAUDRATE 250000
 
 // This enables the serial port associated to the Bluetooth interface
 //#define BTENABLED              // Enable BT interface on AT90USB devices
@@ -71,12 +115,13 @@ Here are some standard links for getting your machine calibrated:
 // The following define selects which electronics board you have.
 // Please choose the name from boards.h that matches your setup
 
-#define MOTHERBOARD BOARD_RAMPS_FD_V1
+#define MOTHERBOARD BOARD_HBLASER
+//#define MOTHERBOARD BOARD_RADDS
 
 
 // Optional custom name for your RepStrap or other custom machine
 // Displayed in the LCD "Ready" message
-#define CUSTOM_MACHINE_NAME "Kossel Due"
+#define CUSTOM_MACHINE_NAME "CO2 Laser"
 
 // Define this to set a unique identifier for this printer, (Used by some programs to differentiate between machines)
 // You can use an online service to generate a random UUID. (eg http://www.uuidgenerator.net/version4)
@@ -95,39 +140,6 @@ Here are some standard links for getting your machine calibrated:
 
 // Define this to have the electronics keep the power supply off on startup. If you don't know what this is leave it.
 // #define PS_DEFAULT_OFF
-
-
-//===========================================================================
-//============================== Delta Settings =============================
-//===========================================================================
-// Enable DELTA kinematics and most of the default configuration for Deltas
-#define DELTA 1
-
-// Make delta curves from many straight lines (linear interpolation).
-// This is a trade-off between visible corners (not enough segments)
-// and processor overload (too many expensive sqrt calls).
-#define DELTA_SEGMENTS_PER_SECOND 300
-
-// NOTE NB all values for DELTA_* values MUST be floating point, so always have a decimal point in them
-
-// Center-to-center distance of the holes in the diagonal push rods.
-#define DELTA_DIAGONAL_ROD (1.005*210.0) // mm
-
-// Horizontal offset from middle of printer to smooth rod center.
-//#define DELTA_SMOOTH_ROD_OFFSET 175.0 // mm
-
-// Horizontal offset of the universal joints on the end effector.
-//#define DELTA_EFFECTOR_OFFSET 33.0 // mm
-
-// Horizontal offset of the universal joints on the carriages.
-//#define DELTA_CARRIAGE_OFFSET 18.0 // mm
-
-// Horizontal distance bridged by diagonal push rods when effector is centered.
-//#define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
-#define DELTA_RADIUS 116
-
-// Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
-#define DELTA_PRINTABLE_RADIUS 50.0
 
 
 //===========================================================================
@@ -176,7 +188,7 @@ Here are some standard links for getting your machine calibrated:
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
-#define TEMP_SENSOR_BED 7
+#define TEMP_SENSOR_BED 0
 
 // This makes temp sensor 1 a redundant sensor for sensor 0. If the temperatures difference between these sensors is to high the print will be aborted.
 //#define TEMP_SENSOR_1_AS_REDUNDANT
@@ -278,15 +290,9 @@ Here are some standard links for getting your machine calibrated:
 #ifdef PIDTEMPBED
 //120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-// 12V silicone pad heater    
-//#define  DEFAULT_bedKp 300
-//    #define  DEFAULT_bedKi 18
-//    #define  DEFAULT_bedKd 1200
-
-// 230V Silicone pad heater        
-    #define  DEFAULT_bedKp 51
-    #define  DEFAULT_bedKi 4.6
-    #define  DEFAULT_bedKd 140
+    #define  DEFAULT_bedKp 300
+    #define  DEFAULT_bedKi 18
+    #define  DEFAULT_bedKd 1200
 #define PID_BED_INTEGRAL_DRIVE_MAX MAX_BED_POWER  //limit for the integral term
 
 //120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
@@ -302,12 +308,12 @@ Here are some standard links for getting your machine calibrated:
 
 //this prevents dangerous Extruder moves, i.e. if the temperature is under the limit
 //can be software-disabled for whatever purposes by
-#define PREVENT_DANGEROUS_EXTRUDE
+//#define PREVENT_DANGEROUS_EXTRUDE
 //if PREVENT_DANGEROUS_EXTRUDE is on, you can still disable (uncomment) very long bits of extrusion separately.
-#define PREVENT_LENGTHY_EXTRUDE
+//#define PREVENT_LENGTHY_EXTRUDE
 
-#define EXTRUDE_MINTEMP 160
-#define EXTRUDE_MAXLENGTH (X_MAX_LENGTH+Y_MAX_LENGTH) //prevent extrusion of very large distances.
+#define EXTRUDE_MINTEMP 0
+//#define EXTRUDE_MAXLENGTH (X_MAX_LENGTH+Y_MAX_LENGTH) //prevent extrusion of very large distances.
 
 //===========================================================================
 //============================= Thermal Runaway Protection ==================
@@ -389,7 +395,14 @@ const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 //#define DISABLE_MAX_ENDSTOPS
-#define DISABLE_MIN_ENDSTOPS
+//#define DISABLE_MIN_ENDSTOPS
+const bool Y2_MIN_ENDSTOP_INVERTING = true;
+const bool Y2_MAX_ENDSTOP_INVERTING = false;
+#define INVERT_Y2_VS_Y_DIR true
+#define DISABLE_XMIN_ENDSTOP
+#define DISABLE_YMAX_ENDSTOP
+#define DISABLE_ZMIN_ENDSTOP
+#define DISABLE_ZMAX_ENDSTOP
 
 // @section machine
 // If you want to enable the Z Probe pin, but disable its use, uncomment the line below.
@@ -436,8 +449,8 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // ENDSTOP SETTINGS:
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
 #define X_HOME_DIR 1 // deltas always home to max
-#define Y_HOME_DIR 1
-#define Z_HOME_DIR 1
+#define Y_HOME_DIR -1
+#define Z_HOME_DIR -1
 
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
@@ -445,12 +458,12 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // @section machine
 
 // Travel limits after homing (units are in mm)
-#define X_MIN_POS -DELTA_PRINTABLE_RADIUS
-#define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
+#define X_MIN_POS 0
+#define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS DELTA_PRINTABLE_RADIUS
-#define Y_MAX_POS DELTA_PRINTABLE_RADIUS
-#define Z_MAX_POS MANUAL_Z_HOME_POS
+#define X_MAX_POS 635
+#define Y_MAX_POS 652
+#define Z_MAX_POS 1
 
 //===========================================================================
 //============================= Filament Runout Sensor ======================
@@ -489,7 +502,7 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 
 // @section bedlevel
 
-#define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
+//#define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
 //#define Z_PROBE_REPEATABILITY_TEST  // If not commented out, Z-Probe Repeatability test will be included if Auto Bed Leveling is Enabled.
 
 #ifdef ENABLE_AUTO_BED_LEVELING
@@ -524,7 +537,7 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
     // Compensate by interpolating between the nearest four Z probe values for each point.
     // Useful for deltas where the print surface may appear like a bowl or dome shape.
     // Works best with ACCURATE_BED_LEVELING_POINTS 5 or higher.
-    #define AUTO_BED_LEVELING_GRID_POINTS 8
+    #define AUTO_BED_LEVELING_GRID_POINTS 7
 
   #else  // !AUTO_BED_LEVELING_GRID
 
@@ -603,16 +616,16 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // @section homing
 
 // The position of the homing switches
-#define MANUAL_HOME_POSITIONS  // If defined, MANUAL_*_HOME_POS below will be used
-#define BED_CENTER_AT_0_0  // If defined, the center of the bed is at (X=0, Y=0)
+// #define MANUAL_HOME_POSITIONS  // If defined, MANUAL_*_HOME_POS below will be used
+//#define BED_CENTER_AT_0_0  // If defined, the center of the bed is at (X=0, Y=0)
 
 // Manual homing switch locations:
 // For deltabots this means top and center of the Cartesian print volume.
-#ifdef MANUAL_HOME_POSITIONS
-  #define MANUAL_X_HOME_POS 0
-  #define MANUAL_Y_HOME_POS 0
-  #define MANUAL_Z_HOME_POS 206 // For delta: Distance between nozzle and print surface after homing.
-#endif
+/* #ifdef MANUAL_HOME_POSITIONS */
+/*   #define MANUAL_X_HOME_POS 500 */
+/*   #define MANUAL_Y_HOME_POS 0 */
+/*   #define MANUAL_Z_HOME_POS 206 // For delta: Distance between nozzle and print surface after homing. */
+/* #endif */
 
 // @section movement
 
@@ -620,23 +633,23 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
  * MOVEMENT SETTINGS
  */
 
-#define HOMING_FEEDRATE {100*60, 100*60, 100*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {3000, 3000, 100*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
 // default settings
-// delta speeds must be the same on xyz
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {200, 200, 200, (2*469)}  // default steps per unit for Kossel (GT2, 20 tooth)
-#define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 75}    // (mm/sec)
-#define DEFAULT_MAX_ACCELERATION      {4000,4000,4000,4000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+// Microstepping 1/8 för ökad hastighet
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,100,50}  // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {40000, 40000, 80000, 25}    // (mm/sec)
+#define DEFAULT_MAX_ACCELERATION      {20000,20000,20000,10000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 
-#define DEFAULT_ACCELERATION          1000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  1000   // E acceleration in mm/s^2 for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   1000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+#define DEFAULT_ACCELERATION          10000    // X, Y, Z and E acceleration in mm/s^2 for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  10000    // E acceleration in mm/s^2 for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   10000    // X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 
 // The speed change that does not require acceleration (i.e. the software might assume it can be done instantaneously)
 #define DEFAULT_XYJERK                20.0    // (mm/sec)
-#define DEFAULT_ZJERK                 20.0    // (mm/sec) Must be same as XY for delta
+#define DEFAULT_ZJERK                 0.4     // (mm/sec)
 #define DEFAULT_EJERK                 5.0    // (mm/sec)
 
 
@@ -647,7 +660,7 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // @section more
 
 // Custom M code points
-#define CUSTOM_M_CODES
+//#define CUSTOM_M_CODES
 #ifdef CUSTOM_M_CODES
   #ifdef ENABLE_AUTO_BED_LEVELING
     #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 41
@@ -742,6 +755,7 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
 // ==> REMEMBER TO INSTALL U8glib to your ARDUINO library folder: http://code.google.com/p/u8glib/wiki/u8glib
+
 //#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // The RepRapWorld REPRAPWORLD_KEYPAD v1.1
@@ -823,64 +837,9 @@ const bool Z_PROBE_ENDSTOP_INVERTING = true; // set to true to invert the logic 
 //define BlinkM/CyzRgb Support
 //#define BLINKM
 
-/*********************************************************************\
-* R/C SERVO support
-* Sponsored by TrinityLabs, Reworked by codexmas
-**********************************************************************/
-
-// Number of servos
-//
-// If you select a configuration below, this will receive a default value and does not need to be set manually
-// set it manually if you have more servos than extruders and wish to manually control some
-// leaving it undefined or defining as 0 will disable the servo subsystem
-// If unsure, leave commented / disabled
-//
-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
-
-// Servo Endstops
-//
-// This allows for servo actuated endstops, primary usage is for the Z Axis to eliminate calibration or bed height changes.
-// Use M851 to set the z-probe vertical offset from the nozzle. Store that setting with M500.
-//
-//#define X_ENDSTOP_SERVO_NR 1
-//#define Y_ENDSTOP_SERVO_NR 2
-//#define Z_ENDSTOP_SERVO_NR 0
-//#define SERVO_ENDSTOP_ANGLES {0,0, 0,0, 70,0} // X,Y,Z Axis Extend and Retract angles
-
-/**********************************************************************\
- * Support for a filament diameter sensor
- * Also allows adjustment of diameter at print time (vs  at slicing)
- * Single extruder only at this point (extruder 0)
- *
- * Motherboards
- * 34 - RAMPS1.4 - uses Analog input 5 on the AUX2 connector
- * 81 - Printrboard - Uses Analog input 2 on the Exp1 connector (version B,C,D,E)
- * 301 - Rambo  - uses Analog input 3
- * Note may require analog pins to be defined for different motherboards
- **********************************************************************/
-// Uncomment below to enable
-//#define FILAMENT_SENSOR
-
-#define FILAMENT_SENSOR_EXTRUDER_NUM 0   //The number of the extruder that has the filament sensor (0,1,2)
-#define MEASUREMENT_DELAY_CM        14   //measurement delay in cm.  This is the distance from filament sensor to middle of barrel
-
 #define DEFAULT_NOMINAL_FILAMENT_DIA 3.0 //Enter the diameter (in mm) of the filament generally used (3.0 mm or 1.75 mm) - this is then used in the slicer software.  Used for sensor reading validation
-#define MEASURED_UPPER_LIMIT         3.3 //upper limit factor used for sensor reading validation in mm
-#define MEASURED_LOWER_LIMIT         1.9 //lower limit factor for sensor reading validation in mm
-#define MAX_MEASUREMENT_DELAY       20   //delay buffer size in bytes (1 byte = 1cm)- limits maximum measurement delay allowable (must be larger than MEASUREMENT_DELAY_CM  and lower number saves RAM)
-
-//defines used in the code
-#define DEFAULT_MEASURED_FILAMENT_DIA  DEFAULT_NOMINAL_FILAMENT_DIA  //set measured to nominal initially
-
-//When using an LCD, uncomment the line below to display the Filament sensor data on the last line instead of status.  Status will appear for 5 sec.
-//#define FILAMENT_LCD_DISPLAY
-
-
-
-
-
 
 #include "Configuration_adv.h"
 #include "thermistortables.h"
 
-#endif //CONF_KOSSEL_H
+#endif //CONF_LASERCON2_H
