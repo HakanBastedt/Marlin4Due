@@ -2045,6 +2045,7 @@ inline void gcode_G0_G1(int codenum) {
     }
 #endif //FWRETRACT
     // G0
+    #ifdef LASER_FIRE_G1
     if (codenum == 0) { 
       int intens = laser.intensity;
       int on = laser.status;
@@ -2055,6 +2056,7 @@ inline void gcode_G0_G1(int codenum) {
       laser.status = on;
       return;
     }
+    #endif
     // G1
 #ifdef LASER_FIRE_G1
       laser_diagnose();

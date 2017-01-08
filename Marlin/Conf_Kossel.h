@@ -58,8 +58,8 @@ Here are some standard links for getting your machine calibrated:
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
 // :[0,1,2,3,4,5,6,7]
-#define MYSERIAL SerialUSB // Native
-//#define MYSERIAL Serial    // Programming
+//#define MYSERIAL SerialUSB // Native
+#define MYSERIAL Serial    // Programming
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
@@ -101,7 +101,7 @@ Here are some standard links for getting your machine calibrated:
 //============================== Delta Settings =============================
 //===========================================================================
 // Enable DELTA kinematics and most of the default configuration for Deltas
-#define DELTA
+#define DELTA 1
 
 // Make delta curves from many straight lines (linear interpolation).
 // This is a trade-off between visible corners (not enough segments)
@@ -111,7 +111,7 @@ Here are some standard links for getting your machine calibrated:
 // NOTE NB all values for DELTA_* values MUST be floating point, so always have a decimal point in them
 
 // Center-to-center distance of the holes in the diagonal push rods.
-#define DELTA_DIAGONAL_ROD (1.005*220.0) // mm
+#define DELTA_DIAGONAL_ROD (1.005*210.0) // mm
 
 // Horizontal offset from middle of printer to smooth rod center.
 //#define DELTA_SMOOTH_ROD_OFFSET 175.0 // mm
@@ -124,10 +124,10 @@ Here are some standard links for getting your machine calibrated:
 
 // Horizontal distance bridged by diagonal push rods when effector is centered.
 //#define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET-DELTA_EFFECTOR_OFFSET-DELTA_CARRIAGE_OFFSET)
-#define DELTA_RADIUS 113.3
+#define DELTA_RADIUS 116
 
 // Print surface diameter/2 minus unreachable space (avoid collisions with vertical towers).
-#define DELTA_PRINTABLE_RADIUS 87.0
+#define DELTA_PRINTABLE_RADIUS 50.0
 
 
 //===========================================================================
