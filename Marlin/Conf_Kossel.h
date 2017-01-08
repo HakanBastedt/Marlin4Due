@@ -58,8 +58,8 @@ Here are some standard links for getting your machine calibrated:
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
 // :[0,1,2,3,4,5,6,7]
-#define MYSERIAL SerialUSB // Native
-//#define MYSERIAL Serial    // Programming
+//#define MYSERIAL SerialUSB // Native
+#define MYSERIAL Serial    // Programming
 
 // This determines the communication speed of the printer
 // :[2400,9600,19200,38400,57600,115200,250000]
